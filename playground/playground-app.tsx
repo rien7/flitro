@@ -6,25 +6,29 @@ import { Filter } from "lucide-react";
 export function PlaygroundApp() {
   const fields = useMemo(
     () => [
-      filtro.string("keyword")
-        .meta({ label: "Keyword", placeholder: "Search name or email" }),
-      filtro.number("amount")
-        .meta({ label: "Amount", placeholder: "Enter amount" }),
-      filtro.date("createdAt")
-        .meta({ label: "Created At" }),
-      filtro.select("status").meta({ label: "Status" }).options([
-        { label: "Open", value: "open" },
-        { label: "Closed", value: "closed" },
-        { label: "Pending", value: "pending" },
+      filtro.group("Basic", [
+        filtro.string("keyword")
+          .meta({ label: "Keyword", placeholder: "Search name or email" }),
+        filtro.number("amount")
+          .meta({ label: "Amount", placeholder: "Enter amount" }),
+        filtro.date("createdAt")
+          .meta({ label: "Created At" }),
       ]),
-      filtro.multiSelect("tags").meta({ label: "Tags" }).options([
-        { label: "VIP", value: "vip" },
-        { label: "Trial", value: "trial" },
-        { label: "Churn Risk", value: "churn-risk" },
-      ]),
-      filtro.boolean("archived").meta({ label: "Archived" }).options([
-        { label: "已归档", value: true },
-        { label: '未归档', value: false }
+      filtro.group("Attributes", [
+        filtro.select("status").meta({ label: "Status" }).options([
+          { label: "Open", value: "open" },
+          { label: "Closed", value: "closed" },
+          { label: "Pending", value: "pending" },
+        ]),
+        filtro.multiSelect("tags").meta({ label: "Tags" }).options([
+          { label: "VIP", value: "vip" },
+          { label: "Trial", value: "trial" },
+          { label: "Churn Risk", value: "churn-risk" },
+        ]),
+        filtro.boolean("archived").meta({ label: "Archived" }).options([
+          { label: "已归档", value: true },
+          { label: "未归档", value: false },
+        ]),
       ]),
     ],
     [],

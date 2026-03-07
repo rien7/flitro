@@ -67,6 +67,14 @@ export interface BooleanUIField<
   options?: BooleanOptions
 }
 
+export interface UIFieldGroup<
+  FieldId extends string = string,
+  Kind extends EnumFieldKind = EnumFieldKind,
+> {
+  label: string;
+  fields: UIFieldForKind<FieldId, Kind>[];
+}
+
 export type UIFieldForKind<
   FieldId extends string,
   Kind extends EnumFieldKind,
@@ -75,3 +83,8 @@ export type UIFieldForKind<
   : Kind extends BooleanKind
   ? BooleanUIField<FieldId, Kind>
   : UIFieldBase<FieldId, Kind>;
+
+export type UIFieldEntry<
+  FieldId extends string = string,
+  Kind extends EnumFieldKind = EnumFieldKind,
+> = UIFieldForKind<FieldId, Kind> | UIFieldGroup<FieldId, Kind>;

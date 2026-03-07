@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { FieldKind, type EnumFieldKind } from "@/logical/field";
 import {
   CalendarIcon,
@@ -12,13 +12,17 @@ import type {
   SelectKind,
   SelectOption,
   SelectUIField,
+  UIFieldEntry,
   UIFieldForKind,
 } from "@/ui/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuPortal,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -113,6 +117,44 @@ function renderSelectOption<FieldId extends string, Kind extends SelectKind>({
   );
 }
 
+function renderFieldEntry<FieldId extends string, Kind extends EnumFieldKind>(
+  uiField: UIFieldForKind<FieldId, Kind>,
+  resolvedIconMapping: Partial<Record<EnumFieldKind, ReactNode>> | null,
+  handleSelectField: <SelectedFieldId extends string, SelectedKind extends SelectKind>(
+    field: SelectUIField<SelectedFieldId, SelectedKind>,
+    value: string,
+  ) => void,
+  handleSelectValue: (field: UIFieldForKind<FieldId, Kind>) => void,
+) {
+  return isSelectionKind(uiField) ? (
+    <DropdownMenuSub key={uiField.id}>
+      <DropdownMenuSubTrigger>
+        {renderFieldIcon(uiField, resolvedIconMapping)}
+        {uiField.label ?? uiField.id}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent>
+          {typeof uiField.options === "function"
+            ? undefined
+            : uiField.options?.map((option, index) =>
+                renderSelectOption({
+                  field: uiField,
+                  option,
+                  keyPath: `${String(uiField.id)}.${index}`,
+                  onSelect: handleSelectField,
+                }),
+              )}
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
+  ) : (
+    <DropdownMenuItem key={uiField.id} onClick={() => handleSelectValue(uiField)}>
+      {renderFieldIcon(uiField, resolvedIconMapping)}
+      {uiField.label ?? uiField.id}
+    </DropdownMenuItem>
+  );
+}
+
 export function FilterBarTrigger({
   iconMapping = false,
   children,
@@ -120,10 +162,24 @@ export function FilterBarTrigger({
 }: MenuTrigger.Props & {
   iconMapping: Partial<Record<EnumFieldKind, ReactNode>> | boolean
 }) {
-  const { uiFields, values, setValues } = useFilterBar()
+  const { uiFieldEntries, values, setValues } = useFilterBar()
   const resolvedIconMapping = resolveIconMapping(iconMapping);
   const activeFieldIds = new Set(values.map((value) => value.fieldId));
-  const availableFields = uiFields.filter((uiField) => !activeFieldIds.has(uiField.id));
+  const availableEntries: UIFieldEntry[] = [];
+
+  for (const entry of uiFieldEntries) {
+    if ("fields" in entry) {
+      const fields = entry.fields.filter((uiField) => !activeFieldIds.has(uiField.id));
+      if (fields.length > 0) {
+        availableEntries.push({ ...entry, fields });
+      }
+      continue;
+    }
+
+    if (!activeFieldIds.has(entry.id)) {
+      availableEntries.push(entry);
+    }
+  }
 
   const handleSelectField = <FieldId extends string, Kind extends SelectKind>(
     field: SelectUIField<FieldId, Kind>,
@@ -140,51 +196,53 @@ export function FilterBarTrigger({
     )
   };
 
+  const handleSelectValue = (uiField: UIFieldForKind<string, EnumFieldKind>) => {
+    if (isSelectionKind(uiField)) {
+      return;
+    }
+
+    const nextValue = createFilterBarValue(uiField);
+
+    if (!nextValue) {
+      return;
+    }
+
+    setValues?.((prev) =>
+      upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
+    );
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger {...props}>
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {availableFields.map((uiField) => {
-          return isSelectionKind(uiField) ? (
-            <DropdownMenuSub key={uiField.id}>
-              <DropdownMenuSubTrigger>
-                {renderFieldIcon(uiField, resolvedIconMapping)}
-                {uiField.label ?? uiField.id}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                  {typeof uiField.options === 'function'
-                    ? undefined
-                    : uiField.options?.map((option, index) =>
-                      renderSelectOption({
-                        field: uiField,
-                        option,
-                        keyPath: `${String(uiField.id)}.${index}`,
-                        onSelect: handleSelectField,
-                      }),
-                    )}
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          ) : (
-            <DropdownMenuItem key={uiField.id} onClick={() => {
-              const nextValue = createFilterBarValue(uiField);
-
-              if (!nextValue) {
-                return;
-              }
-
-                setValues?.((prev) =>
-                  upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
-                )
-            }}>
-              {renderFieldIcon(uiField, resolvedIconMapping)}
-              {uiField.label ?? uiField.id}
-            </DropdownMenuItem>
-          )
-        })}
+        {availableEntries.map((entry, index) => (
+          <Fragment key={"fields" in entry ? `group:${entry.label}` : `field:${entry.id}`}>
+            {index > 0 ? <DropdownMenuSeparator /> : null}
+            {"fields" in entry ? (
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{entry.label}</DropdownMenuLabel>
+                {entry.fields.map((uiField) =>
+                  renderFieldEntry(
+                    uiField,
+                    resolvedIconMapping,
+                    handleSelectField,
+                    handleSelectValue,
+                  ),
+                )}
+              </DropdownMenuGroup>
+            ) : (
+              renderFieldEntry(
+                entry,
+                resolvedIconMapping,
+                handleSelectField,
+                handleSelectValue,
+              )
+            )}
+          </Fragment>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

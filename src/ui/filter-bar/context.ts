@@ -1,5 +1,5 @@
 import type { EnumFieldKind, OperatorKindFor, OperatorValueFor } from "@/logical";
-import type { UIFieldForKind } from "@/ui/types";
+import type { UIFieldEntry, UIFieldForKind } from "@/ui/types";
 import { createContext, useContext, type Dispatch, type SetStateAction } from "react";
 
 export interface FilterBarValue<
@@ -23,12 +23,14 @@ export interface FilterBarContextType<
   FieldId extends string = string,
   Kind extends EnumFieldKind = EnumFieldKind
 > {
+  uiFieldEntries: UIFieldEntry<FieldId, Kind>[],
   uiFields: UIFieldForKind<FieldId, Kind>[],
   values: FilterBarValueType,
   setValues: Dispatch<SetStateAction<FilterBarValueType>> | null,
 }
 
 const FilterBarContext = createContext<FilterBarContextType>({
+  uiFieldEntries: [],
   uiFields: [],
   values: [],
   setValues: null

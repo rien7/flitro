@@ -53,8 +53,30 @@ export type FieldBuilder<
   ? BooleanFieldBuilder<FieldId, Kind>
   : BaseFieldBuilder<FieldId, Kind>;
 
+export interface FieldGroupDefinition<
+  FieldId extends string = string,
+  Kind extends EnumFieldKind = EnumFieldKind,
+> {
+  label: string;
+  fields: FieldBuilder<FieldId, Kind>[];
+}
+
+export type FieldDefinition<
+  FieldId extends string = string,
+  Kind extends EnumFieldKind = EnumFieldKind,
+> = FieldBuilder<FieldId, Kind> | FieldGroupDefinition<FieldId, Kind>;
+
 type AnyUIField = UIFieldForKind<string, EnumFieldKind>;
 const builderFieldStore = new WeakMap<object, AnyUIField>();
+
+export function isFieldGroupDefinition<
+  FieldId extends string,
+  Kind extends EnumFieldKind,
+>(
+  definition: FieldDefinition<FieldId, Kind>,
+): definition is FieldGroupDefinition<FieldId, Kind> {
+  return "fields" in definition && "label" in definition;
+}
 
 export function getUIFieldFromBuilder<
   FieldId extends string,
@@ -178,6 +200,16 @@ class Filtro {
     id: FieldId,
   ): FieldBuilder<FieldId, typeof FieldKind.boolean> {
     return new BooleanBuilderBase(id, FieldKind.boolean);
+  }
+
+  group<FieldId extends string = string, Kind extends EnumFieldKind = EnumFieldKind>(
+    label: string,
+    fields: FieldBuilder<FieldId, Kind>[],
+  ): FieldGroupDefinition<FieldId, Kind> {
+    return {
+      label,
+      fields,
+    };
   }
 }
 

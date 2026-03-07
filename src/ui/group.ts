@@ -1,14 +1,20 @@
 import type { EnumFieldKind } from "../logical/field.js";
-import type { UIFieldForKind } from "./types.js";
+import type { FieldBuilder, FieldGroupDefinition } from "./builder.js";
 
-export interface FieldGroup<
+export type FieldGroup<
   FieldId extends string = string,
   Kind extends EnumFieldKind = EnumFieldKind,
-> {
-  name: string;
-  items: UIFieldForKind<FieldId, Kind>[];
-}
+> = FieldGroupDefinition<FieldId, Kind>;
 
-export function groupField({ groups }: { groups: FieldGroup[] }) {
-  return groups;
+export function groupField<
+  FieldId extends string = string,
+  Kind extends EnumFieldKind = EnumFieldKind,
+>(
+  label: string,
+  fields: FieldBuilder<FieldId, Kind>[],
+): FieldGroup<FieldId, Kind> {
+  return {
+    label,
+    fields,
+  };
 }
