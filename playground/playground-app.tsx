@@ -36,11 +36,14 @@ export function PlaygroundApp() {
           .meta({ label: "Owner", placeholder: "Async options after 5s" })
           .options(async () => loadAsyncOwners())
           .loadOptions("open"),
-        filtro.multiSelect("tags").meta({ label: "Tags" }).options([
-          { label: "VIP", value: "vip" },
-          { label: "Trial", value: "trial" },
-          { label: "Churn Risk", value: "churn-risk" },
-        ]),
+        filtro.multiSelect("tags")
+          .meta({ label: "Tags" })
+          .renderLabel((values) => `${values.length} tags`)
+          .options([
+            { label: "VIP", value: "vip" },
+            { label: "Trial", value: "trial" },
+            { label: "Churn Risk", value: "churn-risk" },
+          ]),
         filtro.boolean("archived").meta({ label: "Archived" }).options([
           { label: "Archived", value: true },
           { label: "Not Archived", value: false },

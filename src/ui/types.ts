@@ -54,6 +54,7 @@ export type SelectKind =
   | typeof FieldKind.select
   | typeof FieldKind.multiSelect;
 export type BooleanKind = typeof FieldKind.boolean
+export type MultiSelectLabelRenderer = (values: string[]) => ReactNode;
 
 export interface SelectUIField<
   FieldId extends string = string,
@@ -62,6 +63,7 @@ export interface SelectUIField<
   options?: SelectOptions;
   optionsLoadMode?: SelectOptionsLoadMode;
   optionsSearchable?: boolean;
+  renderLabel?: MultiSelectLabelRenderer;
 }
 
 export interface BooleanUIField<

@@ -3,6 +3,7 @@ import { operatorsForKind, type OperatorKindFor } from "../logical/operator.js";
 import type {
   BooleanKind,
   BooleanOptions,
+  MultiSelectLabelRenderer,
   SelectKind,
   SelectOptionsLoadMode,
   SelectOptions,
@@ -17,10 +18,15 @@ type SelectFieldBuilderMethod =
   | "options"
   | "loadOptions"
   | "searchable";
+type MultiSelectFieldBuilderMethod =
+  | SelectFieldBuilderMethod
+  | "renderLabel";
 type BooleanFieldBuilderMethod = BaseFieldBuilderMethod | "options";
 
 type FieldBuilderMethod<Kind extends EnumFieldKind> = Kind extends SelectKind
-  ? SelectFieldBuilderMethod
+  ? Kind extends typeof FieldKind.multiSelect
+    ? MultiSelectFieldBuilderMethod
+    : SelectFieldBuilderMethod
   : Kind extends BooleanKind
   ? BooleanFieldBuilderMethod
   : BaseFieldBuilderMethod;
@@ -71,7 +77,9 @@ export type BaseFieldBuilder<
 export type SelectFieldBuilder<
   FieldId extends string,
   Kind extends SelectKind,
-  Used extends SelectFieldBuilderMethod = never,
+  Used extends Kind extends typeof FieldKind.multiSelect
+    ? MultiSelectFieldBuilderMethod
+    : SelectFieldBuilderMethod = never,
 > = AnyFieldBuilder<FieldId, Kind> &
   OmitUsedMethods<
     {
@@ -96,7 +104,11 @@ export type SelectFieldBuilder<
       searchable(
         searchable?: boolean,
       ): SelectFieldBuilder<FieldId, Kind, Used | "searchable">;
-    },
+    } & (Kind extends typeof FieldKind.multiSelect
+      ? {
+          renderLabel(fn: MultiSelectLabelRenderer): SelectFieldBuilder<FieldId, Kind, Used | "renderLabel">;
+        }
+      : {}),
     Used
   >;
 
@@ -254,6 +266,11 @@ class SelectBuilderBase<
 
   searchable(searchable = true) {
     this.field.optionsSearchable = searchable;
+    return this;
+  }
+
+  renderLabel(fn: MultiSelectLabelRenderer) {
+    this.field.renderLabel = fn;
     return this;
   }
 }

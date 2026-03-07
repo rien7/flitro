@@ -14,7 +14,6 @@ import type { FilterValueEditorProps } from "./shared";
 import {
   FILTER_ITEM_EDITOR_CONTROL_CLASS,
   FILTER_ITEM_EDITOR_ROOT_CLASS,
-  getOptionLabels,
 } from "./shared";
 
 export function MultiSelectValueEditor<FieldId extends string>({
@@ -25,7 +24,6 @@ export function MultiSelectValueEditor<FieldId extends string>({
   const currentValue = item.value as string[] | null;
   const value = Array.isArray(currentValue) ? currentValue : [];
   const {
-    displayOptions,
     error,
     handleOpenChange,
     isSearchEnabled,
@@ -50,14 +48,15 @@ export function MultiSelectValueEditor<FieldId extends string>({
       >
         <SelectTrigger className={FILTER_ITEM_EDITOR_CONTROL_CLASS}>
           <SelectValue>
-            {(selectedValue) =>
-              getOptionLabels(
-                Array.isArray(selectedValue) ? selectedValue : value,
-                displayOptions,
-              ) ||
-              field.placeholder ||
-              "Select options"
-            }
+            {(selectedValue) => {
+              const selectedValues = Array.isArray(selectedValue) ? selectedValue : value;
+
+              if (field.renderLabel) {
+                return field.renderLabel(selectedValues);
+              }
+
+              return selectedValues.join(", ") || field.placeholder || "Select options";
+            }}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>

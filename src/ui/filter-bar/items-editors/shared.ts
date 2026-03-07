@@ -40,12 +40,6 @@ export function getOptionLabel(
   return options.find((option) => option.value === value)?.label ?? value;
 }
 
-export function getOptionLabels(values: string[], options: Array<{ label: string; value: string }>) {
-  return values
-    .map((entry) => getOptionLabel(entry, options) ?? entry)
-    .join(", ");
-}
-
 export function getToday() {
   return new Date().toISOString().slice(0, 10);
 }
