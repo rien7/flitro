@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 import { FieldKind, type EnumFieldKind } from "@/logical/field";
 import {
-  EmptyOperatorKind,
-  MultiSelectOperatorKind,
-  SelectOperatorKind,
-} from "@/logical/operator";
-import {
   CalendarIcon,
   CheckSquareIcon,
   HashIcon,
@@ -16,7 +11,6 @@ import {
 import type {
   SelectKind,
   SelectOption,
-  UIFieldBase,
   SelectUIField,
   UIFieldForKind,
 } from "@/ui/types";
@@ -32,6 +26,7 @@ import {
 } from "@/ui/baseui/dropdown-menu";
 import type { MenuTrigger } from "@base-ui/react";
 import { type FilterBarValueType, useFilterBar } from "@/ui/filter-bar/context";
+import { createFilterBarValue } from "@/ui/filter-bar/state";
 
 function isSelectionKind<FieldId extends string, Kind extends EnumFieldKind>(
   field: UIFieldForKind<FieldId, Kind>,
@@ -40,58 +35,6 @@ function isSelectionKind<FieldId extends string, Kind extends EnumFieldKind>(
   SelectUIField<FieldId, SelectKind>
 > {
   return field.kind === FieldKind.select || field.kind === FieldKind.multiSelect
-}
-
-function createInitialFilterValue<
-  FieldId extends string,
-  Kind extends Exclude<EnumFieldKind, SelectKind>,
->(
-  field: UIFieldBase<FieldId, Kind>,
-): FilterBarValueType<FieldId, Kind>[FieldId] | null;
-function createInitialFilterValue<
-  FieldId extends string,
-  Kind extends SelectKind,
->(
-  field: SelectUIField<FieldId, Kind>,
-  selectedValue: string,
-): FilterBarValueType<FieldId, Kind>[FieldId] | null;
-function createInitialFilterValue<
-  FieldId extends string,
-  Kind extends EnumFieldKind,
->(
-  field: UIFieldBase<FieldId, Kind>,
-  selectedValue?: string,
-) {
-  const operator = field.allowedOperators[0];
-
-  if (operator === undefined) {
-    return null;
-  }
-
-  const value =
-    field.kind === FieldKind.select
-      ? operator === SelectOperatorKind.in || operator === SelectOperatorKind.notIn
-        ? [selectedValue]
-        : operator === SelectOperatorKind.eq || operator === SelectOperatorKind.neq
-          ? selectedValue
-          : null
-      : field.kind === FieldKind.multiSelect
-        ? operator === MultiSelectOperatorKind.hasAny
-          || operator === MultiSelectOperatorKind.hasAll
-          || operator === MultiSelectOperatorKind.hasNone
-          ? [selectedValue]
-          : null
-        : operator === EmptyOperatorKind.isEmpty || operator === EmptyOperatorKind.isNotEmpty
-          ? null
-          : null;
-
-  return {
-    field: field.id,
-    kind: field.kind,
-    operator,
-    allowOperators: [...field.allowedOperators],
-    value,
-  } as FilterBarValueType<FieldId, Kind>[FieldId];
 }
 
 const DEFAULT_FIELD_ICON_MAPPING: Record<EnumFieldKind, ReactNode> = {
@@ -183,7 +126,7 @@ export function FilterBarTrigger({
     field: SelectUIField<FieldId, Kind>,
     value: string,
   ) => {
-    const nextValue = createInitialFilterValue(field, value);
+    const nextValue = createFilterBarValue(field, value);
 
     if (!nextValue) {
       return;
@@ -225,7 +168,7 @@ export function FilterBarTrigger({
             </DropdownMenuSub>
           ) : (
             <DropdownMenuItem key={uiField.id} onClick={() => {
-              const nextValue = createInitialFilterValue(uiField);
+              const nextValue = createFilterBarValue(uiField);
 
               if (!nextValue) {
                 return;

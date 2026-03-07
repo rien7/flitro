@@ -85,8 +85,6 @@ export interface DateOperatorValue extends EmptyOperatorValue {
 export const SelectOperatorKind = {
   eq: "eq",
   neq: "neq",
-  in: "in",
-  notIn: "notIn",
   ...EmptyOperatorKind,
 } as const;
 
@@ -97,8 +95,6 @@ export interface SelectOperatorValue<Value extends FieldValueType = string>
   extends EmptyOperatorValue {
   [SelectOperatorKind.eq]: Value;
   [SelectOperatorKind.neq]: Value;
-  [SelectOperatorKind.in]: Value[];
-  [SelectOperatorKind.notIn]: Value[];
 }
 
 export const MultiSelectOperatorKind = {

@@ -28,7 +28,6 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
       values,
       setValues
     }}>
-      <div>{JSON.stringify(values)}</div>
       {children}
     </FilterBarContextProvider>
   );

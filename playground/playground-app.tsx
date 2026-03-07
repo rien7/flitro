@@ -30,6 +30,9 @@ export function PlaygroundApp() {
               Filter
             </span>
           </FilterBar.Trigger>
+          <div className="mt-4">
+            <FilterBar.Items />
+          </div>
         </FilterBar.Root>
       </section>
     </main>
