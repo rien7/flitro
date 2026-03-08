@@ -12,12 +12,6 @@ export interface FilterValueEditorProps<
   onChange: (value: FilterBarValue<FieldId, Kind>["value"]) => void;
 }
 
-export function updateTupleValue<T>(value: T[] | null, index: number, nextValue: T) {
-  const nextTuple = value ? [...value] : [];
-  nextTuple[index] = nextValue;
-  return nextTuple as [T, T];
-}
-
 export function stringifyArrayValue(value: string[]) {
   return value.join(", ");
 }
@@ -31,8 +25,4 @@ export function getOptionLabel(
   }
 
   return options.find((option) => option.value === value)?.label ?? value;
-}
-
-export function getToday() {
-  return new Date().toISOString().slice(0, 10);
 }

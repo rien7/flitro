@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
+
 import { FieldKind } from "@/logical/field";
 import { NumberOperatorKind } from "@/logical/operator";
 import { Input } from "@/ui/baseui/input";
 import { filterBarThemeSlot, useFilterBarTheme } from "@/ui/filter-bar/theme";
 
 import type { FilterValueEditorProps } from "./shared";
-import { updateTupleValue } from "./shared";
 
 export function NumberValueEditor<FieldId extends string>({
   field,
@@ -12,13 +13,86 @@ export function NumberValueEditor<FieldId extends string>({
   onChange,
 }: FilterValueEditorProps<FieldId, typeof FieldKind.number>) {
   const theme = useFilterBarTheme();
+  const [singleDraft, setSingleDraft] = useState(() =>
+    typeof item.value === "number" ? String(item.value) : "",
+  );
+  const [rangeDraft, setRangeDraft] = useState<[string, string]>(() =>
+    Array.isArray(item.value)
+      ? [
+          typeof item.value[0] === "number" ? String(item.value[0]) : "",
+          typeof item.value[1] === "number" ? String(item.value[1]) : "",
+        ]
+      : ["", ""],
+  );
+
+  useEffect(() => {
+    if (
+      item.operator === NumberOperatorKind.between ||
+      item.operator === NumberOperatorKind.notBetween
+    ) {
+      setRangeDraft(
+        Array.isArray(item.value)
+          ? [
+              typeof item.value[0] === "number" ? String(item.value[0]) : "",
+              typeof item.value[1] === "number" ? String(item.value[1]) : "",
+            ]
+          : ["", ""],
+      );
+      return;
+    }
+
+    setSingleDraft(typeof item.value === "number" ? String(item.value) : "");
+  }, [item.operator, item.value]);
+
+  function commitSingleDraft(nextDraft: string) {
+    setSingleDraft(nextDraft);
+
+    if (!nextDraft) {
+      onChange(null);
+      return;
+    }
+
+    const nextValue = Number(nextDraft);
+
+    if (Number.isFinite(nextValue)) {
+      onChange(nextValue);
+    }
+  }
+
+  function commitRangeDraft(index: 0 | 1, nextDraft: string) {
+    setRangeDraft((currentDraft) => {
+      const nextRangeDraft = [...currentDraft] as [string, string];
+      nextRangeDraft[index] = nextDraft;
+
+      const [startDraft, endDraft] = nextRangeDraft;
+
+      if (!startDraft && !endDraft) {
+        onChange(null);
+        return nextRangeDraft;
+      }
+
+      const startValue = Number(startDraft);
+      const endValue = Number(endDraft);
+
+      if (
+        startDraft &&
+        endDraft &&
+        Number.isFinite(startValue) &&
+        Number.isFinite(endValue)
+      ) {
+        onChange([startValue, endValue]);
+      } else {
+        onChange(null);
+      }
+
+      return nextRangeDraft;
+    });
+  }
 
   if (
     item.operator === NumberOperatorKind.between ||
     item.operator === NumberOperatorKind.notBetween
   ) {
-    const tuple = Array.isArray(item.value) ? item.value : [0, 0];
-
     return (
       <div
         data-theme-slot={filterBarThemeSlot("editorRoot")}
@@ -33,22 +107,18 @@ export function NumberValueEditor<FieldId extends string>({
             unstyled={theme.unstyledPrimitives}
             className={theme.classNames.editorControl}
             type="number"
-            value={String(tuple[0] ?? 0)}
+            value={rangeDraft[0]}
             placeholder="Min"
-            onChange={(event) =>
-              onChange(updateTupleValue(tuple, 0, Number(event.currentTarget.value || 0)))
-            }
+            onChange={(event) => commitRangeDraft(0, event.currentTarget.value)}
           />
           <Input
             data-theme-slot={filterBarThemeSlot("editorControl")}
             unstyled={theme.unstyledPrimitives}
             className={theme.classNames.editorControl}
             type="number"
-            value={String(tuple[1] ?? 0)}
+            value={rangeDraft[1]}
             placeholder="Max"
-            onChange={(event) =>
-              onChange(updateTupleValue(tuple, 1, Number(event.currentTarget.value || 0)))
-            }
+            onChange={(event) => commitRangeDraft(1, event.currentTarget.value)}
           />
         </div>
       </div>
@@ -65,9 +135,9 @@ export function NumberValueEditor<FieldId extends string>({
         unstyled={theme.unstyledPrimitives}
         className={theme.classNames.editorControl}
         type="number"
-        value={typeof item.value === "number" ? String(item.value) : "0"}
+        value={singleDraft}
         placeholder={field.placeholder ?? "Enter a number"}
-        onChange={(event) => onChange(Number(event.currentTarget.value || 0))}
+        onChange={(event) => commitSingleDraft(event.currentTarget.value)}
       />
     </div>
   );

@@ -35,10 +35,6 @@ export function isStaticSelectField<FieldId extends string, Kind extends SelectK
   return Array.isArray(field.options);
 }
 
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function normalizeValueForOperator<FieldId extends string, Kind extends EnumFieldKind>({
   field,
   operator,
@@ -57,19 +53,19 @@ export function normalizeValueForOperator<FieldId extends string, Kind extends E
       return typeof previousValue === "string" ? previousValue : "";
     case FieldKind.number:
       if (operator === NumberOperatorKind.between || operator === NumberOperatorKind.notBetween) {
-        return Array.isArray(previousValue) ? previousValue : [0, 0];
+        return Array.isArray(previousValue) ? previousValue : null;
       }
-      return typeof previousValue === "number" ? previousValue : 0;
+      return typeof previousValue === "number" ? previousValue : null;
     case FieldKind.date:
       if (operator === DateOperatorKind.lastNDays || operator === DateOperatorKind.nextNDays) {
-        return typeof previousValue === "number" ? previousValue : 7;
+        return typeof previousValue === "number" ? previousValue : null;
       }
       if (operator === DateOperatorKind.between || operator === DateOperatorKind.notBetween) {
         return Array.isArray(previousValue)
           ? previousValue
-          : [getToday(), getToday()];
+          : null;
       }
-      return typeof previousValue === "string" ? previousValue : getToday();
+      return typeof previousValue === "string" ? previousValue : null;
     case FieldKind.select: {
       const firstOption =
         isStaticSelectField(field) ? flattenSelectOptions(field.options)[0]?.value : undefined;

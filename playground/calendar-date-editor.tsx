@@ -15,7 +15,7 @@ const DAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-type PlaygroundDateValue = DateOperatorValue[EnumDateOperatorKind];
+type PlaygroundDateValue = DateOperatorValue[EnumDateOperatorKind] | null;
 
 export interface PlaygroundCalendarDateEditorProps {
   op: EnumDateOperatorKind;
