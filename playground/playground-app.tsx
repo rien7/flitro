@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react";
 import { Filter, LayoutGrid, Save } from "lucide-react";
 
+import { FilterBar, filtro, type FilterBarThemeInput } from "../src/index";
 import {
   Button,
   defaultFilterBarTheme,
-  FilterBar,
-  filtro,
-  type FilterBarThemeInput,
-} from "../src/ui/index";
+} from "../src/default-theme/index";
 import { useNuqsFilterBarState } from "../src/nuqs/index";
 import { PlaygroundCalendarDateEditor } from "./calendar-date-editor";
 
