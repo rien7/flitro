@@ -1,9 +1,9 @@
-import { FieldKind, type EnumFieldKind } from "../logical/field.js";
+import { FieldKind, type EnumFieldKind } from "../logical/field";
 import {
   defaultOperatorForKind,
   operatorsForKind,
   type OperatorKindFor,
-} from "../logical/operator.js";
+} from "../logical/operator";
 import type {
   BooleanKind,
   BooleanOptions,
@@ -18,7 +18,7 @@ import type {
   UIFieldBase,
   UIFieldForKind,
   UIFieldRender,
-} from "./types.js";
+} from "./types";
 
 type BaseFieldBuilderMethod =
   | "label"

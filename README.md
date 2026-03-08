@@ -26,7 +26,6 @@ The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, an
 - `filtro`: logical types, builder API, `FilterBar`, headless theme contract
 - `filtro/default-theme`: `defaultFilterBarTheme` and styled Base UI wrappers such as `Button`
 - `filtro/nuqs`: optional URL query synchronization helpers
-- `filtro/ui.css`: compatibility alias for the default theme stylesheet
 - `filtro/default-theme.css`: explicit default theme stylesheet entry
 
 ## Installation
@@ -80,7 +79,7 @@ export function HeadlessExample() {
 ### Default Theme Preset
 
 ```tsx
-import "filtro/ui.css";
+import "filtro/default-theme.css";
 import { FilterBar, filtro } from "filtro";
 import { Button, defaultFilterBarTheme } from "filtro/default-theme";
 
@@ -262,12 +261,12 @@ The helper exports around this model include:
 `defaultFilterBarTheme` is in `filtro/default-theme`, not in the root entry.
 
 ```tsx
-import "filtro/ui.css";
+import "filtro/default-theme.css";
 import { FilterBar } from "filtro";
 import { defaultFilterBarTheme } from "filtro/default-theme";
 ```
 
-`filtro/ui.css` currently points at a Tailwind CSS v4 source stylesheet. That means:
+`filtro/default-theme.css` is a Tailwind CSS v4 source stylesheet. That means:
 
 - It is optional
 - It is only needed for the default visual preset
@@ -278,7 +277,6 @@ If you do not want that dependency, use the headless API and provide your own st
 ## Repository Layout
 
 - [`src/index.ts`](/Users/rien7/Developer/filtro/src/index.ts): root package entry
-- [`src/default-theme/index.ts`](/Users/rien7/Developer/filtro/src/default-theme/index.ts): default theme subpath entry
 - [`src/logical`](/Users/rien7/Developer/filtro/src/logical): typed logical layer
 - [`src/filter-bar`](/Users/rien7/Developer/filtro/src/filter-bar): current flat FilterBar implementation
 - [`src/presets/default-theme`](/Users/rien7/Developer/filtro/src/presets/default-theme): optional default preset

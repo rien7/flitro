@@ -1,5 +1,5 @@
-import type { EnumFieldKind } from "../logical/field.js";
-import type { AnyFieldBuilder, FieldGroupDefinition } from "./builder.js";
+import type { EnumFieldKind } from "../logical/field";
+import type { AnyFieldBuilder, FieldGroupDefinition } from "./builder";
 
 export type FieldGroup<
   FieldId extends string = string,

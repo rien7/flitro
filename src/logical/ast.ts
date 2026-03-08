@@ -1,5 +1,5 @@
-import type { EnumFieldKind } from './field.js'
-import type { OperatorKindFor, OperatorValueFor } from './operator.js'
+import type { EnumFieldKind } from "./field"
+import type { OperatorKindFor, OperatorValueFor } from "./operator"
 
 export const FilterAstNode = {
   Condition: 'condition',

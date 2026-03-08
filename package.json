@@ -11,14 +11,13 @@
       "import": "./dist/index.mjs"
     },
     "./default-theme": {
-      "types": "./dist/default-theme/index.d.mts",
-      "import": "./dist/default-theme/index.mjs"
+      "types": "./dist/presets/default-theme/index.d.mts",
+      "import": "./dist/presets/default-theme/index.mjs"
     },
     "./nuqs": {
       "types": "./dist/nuqs/index.d.mts",
       "import": "./dist/nuqs/index.mjs"
     },
-    "./ui.css": "./src/index.css",
     "./default-theme.css": "./src/presets/default-theme/styles.css"
   },
   "files": [
@@ -29,7 +28,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "tsdown src/index.ts src/default-theme/index.ts src/nuqs/index.ts --format esm --dts",
+    "build": "tsdown src/index.ts src/presets/default-theme/index.tsx src/nuqs/index.ts --format esm --dts",
     "build:ui": "vite build --config vite.config.ts",
     "dev:ui": "vite --config vite.config.ts",
     "preview:ui": "vite preview --config vite.config.ts",

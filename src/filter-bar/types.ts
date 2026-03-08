@@ -3,8 +3,8 @@ import {
   FieldKind,
   type EnumFieldKind,
   type LogicalFieldBase,
-} from "../logical/field.js";
-import type { OperatorKindFor, OperatorValueFor } from "../logical/operator.js";
+} from "../logical/field";
+import type { OperatorKindFor, OperatorValueFor } from "../logical/operator";
 
 export type UIFieldRender = <
   Kind extends EnumFieldKind,
