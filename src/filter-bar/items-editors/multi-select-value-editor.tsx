@@ -66,11 +66,13 @@ export function MultiSelectValueEditor<FieldId extends string>({
           }
 
           if (maxSelections === undefined || nextValue.length <= maxSelections) {
-            onChange(nextValue);
+            onChange(nextValue, { valueChangeKind: "selected" });
             return;
           }
 
-          onChange(nextValue.slice(0, maxSelections));
+          onChange(nextValue.slice(0, maxSelections), {
+            valueChangeKind: "selected",
+          });
         }}
       >
         <SelectTrigger

@@ -1,6 +1,7 @@
 import type { EnumFieldKind, OperatorKindFor, OperatorValueFor } from "@/logical";
+import type { FilterBarChangeMeta } from "@/filter-bar/change";
 import type { UIFieldEntry, UIFieldForKind } from "@/filter-bar/types";
-import { createContext, useContext, type Dispatch, type SetStateAction } from "react";
+import { createContext, useContext, type SetStateAction } from "react";
 
 export interface FilterBarValue<
   FieldId extends string,
@@ -44,7 +45,10 @@ export interface FilterBarContextType<
   values: FilterBarValueType<FieldId, Kind>,
   savedViews: FilterBarSavedViewType<FieldId, Kind>,
   activeView: FilterBarSavedView<FieldId, Kind> | null,
-  setValues: Dispatch<SetStateAction<FilterBarValueType<FieldId, Kind>>> | null,
+  changeValues: ((
+    nextState: SetStateAction<FilterBarValueType<FieldId, Kind>>,
+    meta: FilterBarChangeMeta<FieldId>,
+  ) => void) | null,
   saveView: ((name: string) => FilterBarSavedView<FieldId, Kind> | null) | null,
   applyView: ((viewId: string) => void) | null,
   deleteView: ((viewId: string) => void) | null,
@@ -57,7 +61,7 @@ const FilterBarContext = createContext<FilterBarContextType>({
   values: [],
   savedViews: [],
   activeView: null,
-  setValues: null,
+  changeValues: null,
   saveView: null,
   applyView: null,
   deleteView: null,

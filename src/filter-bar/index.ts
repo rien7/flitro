@@ -2,6 +2,7 @@ import { FilterBarRoot } from "./root";
 import { FilterItems } from "./items";
 import { FilterBarTrigger } from "./trigger";
 import { FilterBarClear } from "./clear";
+import { useFilterBarController } from "./controller";
 import { FilterBarSaveView } from "./save-view";
 import { FilterBarThemeProvider, headlessFilterBarTheme } from "./theme";
 import { FilterBarViews } from "./views";
@@ -34,12 +35,24 @@ export { FilterItems } from "./items";
 export { FilterBarTrigger } from "./trigger";
 export { FilterBarSaveView } from "./save-view";
 export { FilterBarViews } from "./views";
+export { useFilterBarController } from "./controller";
 export {
   headlessFilterBarTheme,
   FilterBarThemeProvider,
   mergeFilterBarTheme,
   useFilterBarTheme,
 } from "./theme";
+export type {
+  FilterBarApplyMeta,
+  FilterBarApplyMode,
+  FilterBarChangeMeta,
+  FilterBarCompleteness,
+  FilterBarValueChangeKind,
+} from "./change";
+export type {
+  FilterBarController,
+  UseFilterBarControllerOptions,
+} from "./controller";
 export type {
   FilterBarContextType,
   FilterBarSavedView,

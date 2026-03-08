@@ -20,7 +20,11 @@ import { SelectSearchInput, SelectSeparator } from "@/filter-bar/internal/primit
 import { type FilterBarValueType, useFilterBar } from "@/filter-bar/context";
 import { SelectOptionLabel } from "@/filter-bar/select-option-content";
 import { useSelectableFieldOptions } from "@/filter-bar/select-options";
-import { createFilterBarValue, upsertFilterBarValue } from "@/filter-bar/state";
+import {
+  createFilterBarValue,
+  getFilterBarValueCompleteness,
+  upsertFilterBarValue,
+} from "@/filter-bar/state";
 import {
   filterBarThemeSlot,
   useFilterBarTheme,
@@ -281,7 +285,7 @@ export function FilterBarTrigger({
 }: MenuTrigger.Props & {
   iconMapping: Partial<Record<EnumFieldKind, ReactNode>> | boolean;
 }) {
-  const { activeView, clearActiveView, uiFieldEntries, values, setValues } = useFilterBar();
+  const { activeView, changeValues, clearActiveView, uiFieldEntries, values } = useFilterBar();
   const theme = useFilterBarTheme();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -345,8 +349,13 @@ export function FilterBarTrigger({
     }
 
     clearActiveView?.();
-    setValues?.((prev) =>
-      upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
+    changeValues?.(
+      (prev) => upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
+      {
+        action: "add",
+        fieldId: field.id,
+        completeness: getFilterBarValueCompleteness(nextValue as never),
+      },
     );
   };
 
@@ -362,8 +371,13 @@ export function FilterBarTrigger({
     }
 
     clearActiveView?.();
-    setValues?.((prev) =>
-      upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
+    changeValues?.(
+      (prev) => upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
+      {
+        action: "add",
+        fieldId: uiField.id,
+        completeness: getFilterBarValueCompleteness(nextValue as never),
+      },
     );
   };
 

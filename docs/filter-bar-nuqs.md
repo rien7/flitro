@@ -163,7 +163,72 @@ useNuqsFilterBarState({
 - `history`: 透传给 `nuqs/useQueryStates`
 - `shallow`: 透传给 `nuqs/useQueryStates`
 
-## 6. 默认 query key 规则
+## 6. 和 `useFilterBarController()` 组合
+
+如果你希望：
+
+- `FilterBar` 里先编辑 draft
+- 点击 Apply 后才写回 URL
+
+不要让 `nuqs` 直接控制 `Root`，而应该让它控制 controller 的 applied 通道。
+
+```tsx
+import { FilterBar, filtro, useFilterBarController } from "filtro";
+import { useNuqsFilterBarState } from "filtro/nuqs";
+
+const fields = [
+  filtro.string("keyword").label("Keyword"),
+  filtro.select("status").label("Status").options([
+    { label: "Open", value: "open" },
+    { label: "Closed", value: "closed" },
+  ]),
+];
+
+export function UrlBackedFilters() {
+  const urlState = useNuqsFilterBarState({
+    fields,
+    history: "replace",
+  });
+
+  const filters = useFilterBarController({
+    appliedValue: urlState.value,
+    onAppliedChange: urlState.onChange,
+    applyMode: "manual",
+  });
+
+  return (
+    <>
+      <FilterBar.Root
+        fields={fields}
+        value={filters.draftValue}
+        onChange={filters.onDraftChange}
+      >
+        <FilterBar.Trigger render={<button type="button" />}>
+          Add Filter
+        </FilterBar.Trigger>
+        <FilterBar.Clear render={<button type="button" />}>
+          Clear
+        </FilterBar.Clear>
+        <FilterBar.Items />
+      </FilterBar.Root>
+
+      <button type="button" onClick={filters.apply} disabled={!filters.isDirty}>
+        Apply
+      </button>
+    </>
+  );
+}
+```
+
+这条组合方式的职责是固定的：
+
+- `Root` 只编辑 `draftValue`
+- controller 负责 `draft -> applied`
+- `nuqs` 只负责 applied value 和 URL 之间的同步
+
+第一版推荐 `history: "replace"`。
+
+## 7. 默认 query key 规则
 
 `filtro/nuqs` 默认不是把整个筛选写进一个 JSON 参数，而是按字段拆开成多组 key。
 
@@ -204,7 +269,7 @@ useNuqsFilterBarState({
 
 这两种情况下只写 `${fieldId}Op`，不会再写 value key。
 
-## 7. 非法 URL 的处理方式
+## 8. 非法 URL 的处理方式
 
 `filtro/nuqs` 会先按字段定义做清洗，再把结果喂给 `FilterBar`。
 
