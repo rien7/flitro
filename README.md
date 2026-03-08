@@ -1,76 +1,92 @@
 # filtro
 
-`filtro` is a React filter bar component library for building flat, reusable filtering UIs.
+`filtro` is a React filter bar library for building flat, reusable filtering UIs.
 
-It combines:
+It is organized around three layers:
 
-- a typed logical layer for fields, operators, and filter AST types
-- a builder API for declaring UI fields
-- a `FilterBar` component system for adding, editing, and clearing conditions
-- optional URL synchronization via `filtro/nuqs`
-- an optional default theme on top of a headless core
+- `logical`: typed field kinds, operators, and AST types
+- `filter-bar`: the current flat `FilterBar` component system
+- `default-theme`: an optional visual preset and styled primitives
 
 This repository is a component library, not a full application.
 
 ## Status
 
-The current implementation is a **flat filter bar**:
+The current UI is a flat filter bar.
 
-- one active condition per field
-- no repeated conditions for the same field
-- no nested AND/OR groups in the UI
-- no visual AST editor
+- One active condition per field
+- No repeated conditions for the same field
+- No nested AND/OR groups in the UI
+- No visual AST editor
 
-The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, and `FilterRoot`, but the current `FilterBar` UI does **not** edit nested groups.
+The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, and `FilterRoot`, but the current `FilterBar` does not edit nested groups.
 
-## Features
+## Package Entrypoints
 
-- Typed field kinds: `string`, `number`, `date`, `select`, `multiSelect`, `boolean`
-- Typed operator/value mapping per field kind
-- Builder API with strong TypeScript inference
-- Grouped field definitions for trigger menus
-- Flat condition state managed by `FilterBar.Root`
-- Uncontrolled and controlled `FilterBar` usage
-- Built-in row editors for string, number, date, select, multi-select, and boolean values
-- Custom per-field value editor rendering via `.render(...)`
-- Field-level validation via `.validate(...)`
-- Schema-based validation via `.zod(...)` with any `safeParse()`-compatible schema
-- Static select options
-- Async option loading with request cancellation and caching
-- Custom option sources via `.useOptions(...)`
-- Searchable select and multi-select menus
-- Multi-select value labels and max selection limits
-- Saved views backed by `localStorage`
-- Headless mode by default
-- Optional default theme and exported Base UI wrappers
-- Utility helpers for sanitizing, serializing, and deserializing filter values
-- Optional URL query sync with `nuqs`
-- Vite playground for local UI debugging
+- `filtro`: logical types, builder API, `FilterBar`, headless theme contract
+- `filtro/default-theme`: `defaultFilterBarTheme` and styled Base UI wrappers such as `Button`
+- `filtro/nuqs`: optional URL query synchronization helpers
+- `filtro/ui.css`: compatibility alias for the default theme stylesheet
+- `filtro/default-theme.css`: explicit default theme stylesheet entry
 
 ## Installation
 
 ```bash
-pnpm add filtro
+pnpm add filtro react react-dom
 ```
 
-Optional peer dependencies:
+Optional:
 
-- `react`
-- `react-dom`
-- `nuqs` if you want URL synchronization
+- `pnpm add nuqs` if you want URL synchronization
+- Tailwind CSS v4 tooling if you want to compile the shipped default-theme stylesheet source
 
 ## Quick Start
 
+### Headless
+
 ```tsx
-import "filtro/ui.css";
-import { Button, defaultFilterBarTheme, FilterBar, filtro } from "filtro";
+import { FilterBar, filtro } from "filtro";
 
 const fields = [
   filtro.group("Basic", [
-    filtro.string("keyword")
-      .label("Keyword")
-      .placeholder("Search name or email"),
+    filtro.string("keyword").label("Keyword"),
     filtro.number("amount").label("Amount"),
+  ]),
+  filtro.group("Status", [
+    filtro.select("status").label("Status").options([
+      { label: "Open", value: "open" },
+      { label: "Closed", value: "closed" },
+    ]),
+  ]),
+];
+
+export function HeadlessExample() {
+  return (
+    <FilterBar.Root fields={fields}>
+      <div className="toolbar">
+        <FilterBar.Trigger render={<button type="button" />}>
+          Add Filter
+        </FilterBar.Trigger>
+        <FilterBar.Clear render={<button type="button" />}>
+          Clear
+        </FilterBar.Clear>
+      </div>
+      <FilterBar.Items />
+    </FilterBar.Root>
+  );
+}
+```
+
+### Default Theme Preset
+
+```tsx
+import "filtro/ui.css";
+import { FilterBar, filtro } from "filtro";
+import { Button, defaultFilterBarTheme } from "filtro/default-theme";
+
+const fields = [
+  filtro.group("Basic", [
+    filtro.string("keyword").label("Keyword"),
     filtro.date("createdAt").label("Created At"),
   ]),
   filtro.group("Attributes", [
@@ -79,11 +95,6 @@ const fields = [
       { label: "Closed", value: "closed" },
       { label: "Pending", value: "pending" },
     ]),
-    filtro.multiSelect("tags").label("Tags").options([
-      { label: "VIP", value: "vip" },
-      { label: "Trial", value: "trial" },
-      { label: "Churn Risk", value: "churn-risk" },
-    ]),
     filtro.boolean("archived").label("Archived").options([
       { label: "Archived", value: true },
       { label: "Not Archived", value: false },
@@ -91,7 +102,7 @@ const fields = [
   ]),
 ];
 
-export function Example() {
+export function StyledExample() {
   return (
     <FilterBar.Root
       fields={fields}
@@ -118,22 +129,69 @@ export function Example() {
 }
 ```
 
-## Core Concepts
+## Main Features
 
-### 1. Logical Layer
+- Typed field kinds: `string`, `number`, `date`, `select`, `multiSelect`, `boolean`
+- Typed operator-to-value mapping per field kind
+- Builder API with strong TypeScript inference
+- Grouped field definitions for trigger menus
+- Uncontrolled and controlled `FilterBar.Root`
+- Built-in row editors for all current field kinds
+- Custom field value editors via `.render(...)`
+- Field-level validation via `.validate(...)`
+- Schema-style validation via `.zod(...)`
+- Static select options
+- Async option loading with request cancellation and caching
+- Custom option sources via `.useOptions(...)`
+- Searchable select and multi-select menus
+- Multi-select value labels and max selection limits
+- Saved views backed by `localStorage`
+- Optional URL query sync with `nuqs`
 
-The logical layer lives in `src/logical` and exports:
+## Architecture
+
+### `logical`
+
+Located in [`src/logical`](/Users/rien7/Developer/filtro/src/logical).
+
+This layer defines:
 
 - field kinds
 - operator definitions
-- operator-to-value typing
+- operator value typing
 - AST types
 
-This layer is framework-agnostic and does not depend on React.
+It is framework-agnostic and does not depend on React.
 
-### 2. Builder API
+### `filter-bar`
 
-Use the `filtro` singleton to define fields:
+Located in [`src/filter-bar`](/Users/rien7/Developer/filtro/src/filter-bar).
+
+This layer contains:
+
+- builder API
+- UI field types
+- `FilterBar.Root / Trigger / Items / Clear / SaveView / Views`
+- current flat condition state model
+- theme slot contract and helpers
+
+This is the current product shape. It is not the future nested builder described in planning docs.
+
+### `default-theme`
+
+Located in [`src/presets/default-theme`](/Users/rien7/Developer/filtro/src/presets/default-theme).
+
+This layer contains:
+
+- `defaultFilterBarTheme`
+- styled wrappers around `@base-ui/react`
+- the default stylesheet source
+
+It is optional. If you only want the headless behavior, you do not need this preset.
+
+## Builder API
+
+Use the `filtro` singleton to declare fields:
 
 ```tsx
 const fields = [
@@ -153,391 +211,103 @@ const fields = [
 ];
 ```
 
-Supported builder methods include:
+Common builder methods:
 
-- Common: `.label()`, `.icon()`, `.description()`, `.placeholder()`, `.operator()`, `.render()`, `.validate()`, `.zod()`
-- `select` / `multiSelect`: `.options()`, `.useOptions()`, `.loadOptions()`, `.searchable()`
-- `multiSelect`: `.renderValueLabel()`, `.maxSelections()`
-- `boolean`: `.options()`
+- `.label()`
+- `.icon()`
+- `.description()`
+- `.placeholder()`
+- `.operator()`
+- `.render()`
+- `.validate()`
+- `.zod()`
 
-### 3. FilterBar Components
+Select-specific methods:
 
-The main UI API is:
+- `.options()`
+- `.useOptions()`
+- `.loadOptions()`
+- `.searchable()`
 
-- `FilterBar.Root`
-- `FilterBar.Trigger`
-- `FilterBar.Items`
-- `FilterBar.Clear`
-- `FilterBar.SaveView`
-- `FilterBar.Views`
-- `FilterBar.ThemeProvider`
+Multi-select extras:
 
-`FilterBar.Root` resolves field definitions, owns or receives state, and provides context to the rest of the UI.
+- `.renderValueLabel()`
+- `.maxSelections()`
 
-## Field Kinds And Operators
+Boolean extras:
 
-### String
+- `.options()`
 
-Operators:
+## Current State Model
 
-- `eq`
-- `startsWith`
-- `endsWith`
-- `contains`
-- `notContains`
-- `isEmpty`
-- `isNotEmpty`
-
-### Number
-
-Operators:
-
-- `eq`
-- `gt`
-- `lt`
-- `gte`
-- `lte`
-- `between`
-- `notBetween`
-- `isEmpty`
-- `isNotEmpty`
-
-### Date
-
-Operators:
-
-- `eq`
-- `before`
-- `after`
-- `between`
-- `notBetween`
-- `lastNDays`
-- `nextNDays`
-- `isEmpty`
-- `isNotEmpty`
-
-### Select
-
-Operators:
-
-- `eq`
-- `neq`
-- `isEmpty`
-- `isNotEmpty`
-
-### MultiSelect
-
-Operators:
-
-- `hasAny`
-- `hasAll`
-- `hasNone`
-- `isEmpty`
-- `isNotEmpty`
-
-### Boolean
-
-Operators:
-
-- `eq`
-
-## State Model
-
-The current UI state shape is `FilterBarValue[]`.
+`FilterBar` currently stores flat values as `FilterBarValue[]`.
 
 Important constraints:
 
-- each field appears at most once
-- duplicate conditions for the same field are not supported
-- the current UI does not output `FilterRoot`
-- nested condition groups are not supported
+- Each field appears at most once
+- Duplicate conditions for the same field are not supported
+- The UI does not emit `FilterRoot`
+- Nested groups are not supported
 
-The library exports helpers such as:
+The helper exports around this model include:
 
 - `resolveFilterBarFields`
 - `sanitizeFilterBarValue`
 - `sanitizeFilterBarValues`
 - `serializeFilterBarValue`
 - `deserializeFilterBarValue`
-- `areFilterBarValuesEqual`
-- `getFilterBarQueryKeys`
 
-## Select And Multi-Select Options
+## Styling Notes
 
-`select` and `multiSelect` support three option strategies.
-
-### Static Options
+`defaultFilterBarTheme` is in `filtro/default-theme`, not in the root entry.
 
 ```tsx
-filtro.select("status").options([
-  { label: "Open", value: "open" },
-  { label: "Closed", value: "closed" },
-]);
+import "filtro/ui.css";
+import { FilterBar } from "filtro";
+import { defaultFilterBarTheme } from "filtro/default-theme";
 ```
 
-### Async Loader
+`filtro/ui.css` currently points at a Tailwind CSS v4 source stylesheet. That means:
 
-```tsx
-filtro.select("owner")
-  .options(async ({ query, signal }) => {
-    const response = await fetch(`/api/owners?q=${encodeURIComponent(query)}`, {
-      signal,
-    });
+- It is optional
+- It is only needed for the default visual preset
+- It expects a compatible Tailwind v4 compilation setup in the consuming app
 
-    return (await response.json()) as Array<{ label: string; value: string }>;
-  })
-  .loadOptions("open");
-```
+If you do not want that dependency, use the headless API and provide your own styles.
 
-Built-in async behavior includes:
+## Repository Layout
 
-- loading on open or on render
-- request cancellation via `AbortController`
-- per-field and per-query caching
-- remembered selected option labels for round-tripping
+- [`src/index.ts`](/Users/rien7/Developer/filtro/src/index.ts): root package entry
+- [`src/default-theme/index.ts`](/Users/rien7/Developer/filtro/src/default-theme/index.ts): default theme subpath entry
+- [`src/logical`](/Users/rien7/Developer/filtro/src/logical): typed logical layer
+- [`src/filter-bar`](/Users/rien7/Developer/filtro/src/filter-bar): current flat FilterBar implementation
+- [`src/presets/default-theme`](/Users/rien7/Developer/filtro/src/presets/default-theme): optional default preset
+- [`src/nuqs/index.ts`](/Users/rien7/Developer/filtro/src/nuqs/index.ts): URL sync helpers
+- [`playground`](/Users/rien7/Developer/filtro/playground): local demo app
 
-### Custom Hook Source
+## Local Development
 
-```tsx
-filtro.select("reviewer").useOptions(({ normalizedQuery, selectedValues, shouldLoad }) => {
-  if (!shouldLoad) {
-    return { options: [], status: "idle" };
-  }
-
-  const options = allReviewers.filter((option) =>
-    option.label.toLowerCase().includes(normalizedQuery),
-  );
-
-  return {
-    options,
-    selectedOptions: allReviewers.filter((option) =>
-      selectedValues.includes(option.value),
-    ),
-    status: "success",
-  };
-});
-```
-
-## Validation
-
-Two validation entry points are supported:
-
-- `.validate(fn)`
-- `.zod(schemaOrFactory)`
-
-Validation rules run at the field level and can depend on the active operator.
-
-```tsx
-filtro.number("amount").validate(({ op, value }) => {
-  if (value == null) return null;
-
-  if (op === "between" || op === "notBetween") {
-    return value[0] <= value[1] ? null : "Min must be less than or equal to max";
-  }
-
-  return value >= 0 ? null : "Amount must be zero or greater";
-});
-```
-
-`.zod(...)` does not require a hard dependency on `zod`; it accepts any schema object with a compatible `safeParse()` API.
-
-## Custom Value Editors
-
-You can replace the built-in value editor for a specific field with `.render(...)`.
-
-```tsx
-filtro.date("releaseWindow").render(({ op, value, onChange, validate }) => {
-  return (
-    <CustomDateEditor
-      op={op}
-      value={value}
-      onChange={onChange}
-      validate={validate}
-    />
-  );
-});
-```
-
-`render(...)` only replaces the value editor area. The row shell, field label, operator selector, and remove action remain managed by `FilterBar`.
-
-## Headless And Themed Usage
-
-`FilterBar` is headless by default.
-
-- No `theme`: structure and behavior only
-- `defaultFilterBarTheme`: enables the packaged visual preset
-- `mergeFilterBarTheme(...)`: extend the default preset without rewriting it
-
-Theme inputs support:
-
-- `unstyledPrimitives`
-- `classNames`
-- `texts`
-- `icons`
-
-Every themeable node also exposes a `data-theme-slot` attribute for targeted styling.
-
-### CSS Note
-
-Import `filtro/ui.css` only if you want the default theme or its CSS tokens.
-
-The exported stylesheet is currently a Tailwind CSS v4 source file, not precompiled CSS. Consumers need a compatible Tailwind v4 pipeline for the packaged theme to work as-is.
-
-## Saved Views
-
-`FilterBar` can save the current flat filter state as named views.
-
-Components:
-
-- `FilterBar.SaveView`
-- `FilterBar.Views`
-
-Behavior:
-
-- saved views are persisted in `localStorage`
-- views store sanitized `FilterBarValue[]`
-- active views can be applied and exited
-- overflow handling is supported with `maxVisibleCount` and `maxVisibleRows`
-
-`FilterBar.Root` accepts `viewsStorageKey` so multiple filter bars on the same page can persist independently.
-
-## Controlled Mode
-
-`FilterBar.Root` supports both uncontrolled and controlled usage.
-
-### Uncontrolled
-
-```tsx
-<FilterBar.Root fields={fields} />
-```
-
-### Controlled
-
-```tsx
-<FilterBar.Root
-  fields={fields}
-  value={value}
-  onValueChange={setValue}
-/>
-```
-
-`defaultValue` only applies in uncontrolled mode.
-
-## URL Sync With `nuqs`
-
-Install `nuqs` only if you need URL query state synchronization:
-
-```bash
-pnpm add filtro nuqs
-```
-
-Then use `filtro/nuqs`:
-
-```tsx
-import { FilterBar, filtro } from "filtro";
-import { useNuqsFilterBarState } from "filtro/nuqs";
-
-const fields = [
-  filtro.string("keyword").label("Keyword"),
-  filtro.select("status").label("Status").options([
-    { label: "Open", value: "open" },
-    { label: "Closed", value: "closed" },
-  ]),
-];
-
-export function Filters() {
-  const filterState = useNuqsFilterBarState({
-    fields,
-    prefix: "demo_",
-    history: "replace",
-    shallow: true,
-  });
-
-  return (
-    <FilterBar.Root
-      fields={fields}
-      value={filterState.value}
-      onValueChange={filterState.onValueChange}
-    >
-      <FilterBar.Trigger render={<button type="button" />}>
-        Add Filter
-      </FilterBar.Trigger>
-      <FilterBar.Clear render={<button type="button" />}>
-        Clear
-      </FilterBar.Clear>
-      <FilterBar.Items />
-    </FilterBar.Root>
-  );
-}
-```
-
-The `nuqs` integration provides:
-
-- parsing from URL query state into `FilterBarValue[]`
-- serialization back into field-specific query keys
-- sanitization of invalid or outdated query values
-- browser back/forward compatibility through controlled state
-
-## Exported UI Primitives
-
-The package also exports a small set of wrappers around `@base-ui/react`, including:
-
-- `Button`
-- `ButtonGroup`
-- `DropdownMenu`
-- `Input`
-- `Select`
-- `Switch`
-
-These are used by the default `FilterBar` implementation and can also be reused by consumers.
-
-## Playground
-
-A Vite playground is included for local development and UI debugging.
-
-It demonstrates:
-
-- headless usage
-- default themed usage
-- async options
-- custom date rendering
-- validation behavior
-- saved views
-- `nuqs` URL synchronization
-
-## Development
+Install dependencies:
 
 ```bash
 pnpm install
-pnpm run typecheck
-pnpm run build
-pnpm run dev:ui
 ```
 
-Other commands:
+Useful commands:
 
-- `pnpm test` runs the same check as `pnpm run typecheck`
-- `pnpm run build:ui` builds the playground
-- `pnpm run preview:ui` previews the playground build
+- `pnpm run typecheck`
+- `pnpm test`
+- `pnpm run build`
+- `pnpm run dev:ui`
+- `pnpm run build:ui`
 
-## Current Limitations
+The playground imports the source tree directly, so it is the fastest way to inspect behavior while changing the library.
 
-- Flat filter state only
-- One condition per field
-- No repeated conditions on the same field
-- No AND/OR group editing in the current UI
-- No AST editor UI
-- Saved views do not currently support rename, sorting, delete UI, or cloud sync
-- The default theme depends on a Tailwind CSS v4-compatible consumer pipeline
+## Additional Docs
 
-## Repository Structure
-
-- `src/logical`: domain model and filter typing
-- `src/ui`: builder API, filter bar, theme system, and primitives
-- `src/nuqs`: optional URL-sync adapter
-- `playground`: local demo application
-- `docs`: focused notes about options, validation, styling, rendering, views, and `nuqs`
-
-## License
-
-ISC
+- [`docs/filter-bar-styling.md`](/Users/rien7/Developer/filtro/docs/filter-bar-styling.md)
+- [`docs/filter-bar-views.md`](/Users/rien7/Developer/filtro/docs/filter-bar-views.md)
+- [`docs/filter-bar-options.md`](/Users/rien7/Developer/filtro/docs/filter-bar-options.md)
+- [`docs/filter-bar-validation.md`](/Users/rien7/Developer/filtro/docs/filter-bar-validation.md)
+- [`docs/filter-bar-render.md`](/Users/rien7/Developer/filtro/docs/filter-bar-render.md)
+- [`docs/filter-bar-nuqs.md`](/Users/rien7/Developer/filtro/docs/filter-bar-nuqs.md)

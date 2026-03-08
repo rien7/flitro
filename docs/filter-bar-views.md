@@ -13,12 +13,8 @@
 
 ```tsx
 import "filtro/ui.css";
-import {
-  Button,
-  defaultFilterBarTheme,
-  FilterBar,
-  filtro,
-} from "filtro";
+import { FilterBar, filtro } from "filtro";
+import { Button, defaultFilterBarTheme } from "filtro/default-theme";
 
 const fields = [
   filtro.string("keyword").label("Keyword"),

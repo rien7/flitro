@@ -77,7 +77,7 @@ const fields = [
 - 删除按钮仍然由 `FilterBar` 渲染
 - 只有值输入区域改成你的自定义实现
 
-内部触发点在 [`src/ui/filter-bar/items.value-editor.tsx`](/Users/rien7/Developer/filtro/src/ui/filter-bar/items.value-editor.tsx)。
+内部触发点在 [`src/filter-bar/items.value-editor.tsx`](/Users/rien7/Developer/filtro/src/filter-bar/items.value-editor.tsx)。
 
 当字段定义上存在 `render` 时，`FilterBar` 不会再走默认的 `StringValueEditor` / `DateValueEditor` / `SelectValueEditor` 这些内置 editor。
 
@@ -192,7 +192,7 @@ const isRelative =
 
 默认 date editor 在：
 
-[`src/ui/filter-bar/items-editors/date-value-editor.tsx`](/Users/rien7/Developer/filtro/src/ui/filter-bar/items-editors/date-value-editor.tsx)
+[`src/filter-bar/items-editors/date-value-editor.tsx`](/Users/rien7/Developer/filtro/src/filter-bar/items-editors/date-value-editor.tsx)
 
 默认实现是：
 

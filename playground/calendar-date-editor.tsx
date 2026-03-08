@@ -7,7 +7,7 @@ import {
   type DateOperatorValue,
   type EnumDateOperatorKind,
 } from "../src/logical/operator";
-import { Calendar } from "../src/ui/baseui/calendar";
+import { Calendar } from "./internal/calendar";
 
 const DAY_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",

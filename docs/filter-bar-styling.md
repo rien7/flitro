@@ -1,12 +1,12 @@
 # FilterBar Styling And Themes
 
-`FilterBar` 现在默认以 headless 模式运行。
+`FilterBar` 现在默认以 headless 模式运行，默认视觉 preset 通过 `filtro/default-theme` 单独提供。
 
 这意味着：
 
 - 不传 `theme` 时，`FilterBar` 只保留交互、状态和结构，不附带内部视觉样式。
-- 想使用库内置的样式，需要显式传入 `defaultFilterBarTheme`。
-- 想继续用默认配色 token，需要同时引入 `filtro/ui.css`。
+- 想使用官方默认样式，需要从 `filtro/default-theme` 引入 `defaultFilterBarTheme`。
+- 想继续用默认配色 token，需要同时引入 `filtro/ui.css` 或 `filtro/default-theme.css`。
 
 当前这份 `ui.css` 仍然是 Tailwind CSS v4 source file，不是预编译后的静态 CSS。
 
@@ -38,18 +38,14 @@ export function HeadlessExample() {
 }
 ```
 
-这种模式下，库内部的 `Button`、`Select`、`DropdownMenu` primitive 都会走 `unstyled` 分支，FilterBar 自己的 row / empty state / menu 也不会再附带默认 class。
+这种模式下，默认 preset 内部的 primitive 会走 `unstyled` 分支，FilterBar 自己的 row / empty state / menu 也不会再附带默认 class。
 
 ## 2. 启用默认主题
 
 ```tsx
 import "filtro/ui.css";
-import {
-  Button,
-  defaultFilterBarTheme,
-  FilterBar,
-  filtro,
-} from "filtro";
+import { FilterBar, filtro } from "filtro";
+import { Button, defaultFilterBarTheme } from "filtro/default-theme";
 
 export function DefaultThemeExample() {
   return (
@@ -68,7 +64,7 @@ export function DefaultThemeExample() {
 
 `defaultFilterBarTheme` 做了两件事：
 
-- 打开内部 primitive 的默认样式。
+- 打开默认 preset primitive 的默认样式。
 - 给 FilterBar 自己的 slot 注入当前这套默认布局 class。
 
 ## 3. 只改一部分样式
@@ -77,11 +73,8 @@ export function DefaultThemeExample() {
 
 ```tsx
 import "filtro/ui.css";
-import {
-  defaultFilterBarTheme,
-  FilterBar,
-  mergeFilterBarTheme,
-} from "filtro";
+import { FilterBar, mergeFilterBarTheme } from "filtro";
+import { defaultFilterBarTheme } from "filtro/default-theme";
 
 const compactTheme = mergeFilterBarTheme(defaultFilterBarTheme, {
   classNames: {
@@ -123,7 +116,7 @@ export function CompactExample() {
 ### `unstyledPrimitives`
 
 - `true`: 内部 primitive 不附带默认视觉样式。
-- `false`: 内部 primitive 使用库内置样式。
+- `false`: 内部 primitive 使用默认 preset 的样式。
 
 ### `texts`
 
@@ -202,7 +195,7 @@ export function CompactExample() {
 
 ## 5. 什么时候需要 `ui.css`
 
-只有在你使用默认主题，或者想复用库里现在这套 `background / border / accent / destructive` token 时，才需要引入 `filtro/ui.css`。
+只有在你使用默认主题 preset，或者想复用库里现在这套 `background / border / accent / destructive` token 时，才需要引入 `filtro/ui.css`。
 
 为了让第三方项目能扫描到默认主题 preset 里用到的 Tailwind class，包发布时会保留 `src` 目录。这样 `ui.css` 中的 `@source "./**/*.{ts,tsx}"` 能在消费端继续找到这些 class 定义。
 

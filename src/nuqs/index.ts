@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { FieldKind, type EnumFieldKind } from "@/logical/field";
-import type { FieldDefinition } from "@/ui/builder";
-import type { FilterBarValueType } from "@/ui/filter-bar/context";
+import type { FieldDefinition } from "@/filter-bar/builder";
+import type { FilterBarValueType } from "@/filter-bar/context";
 import {
   areFilterBarValuesEqual,
   deserializeFilterBarValue,
@@ -11,7 +11,7 @@ import {
   sanitizeFilterBarValues,
   serializeFilterBarValue,
   type FilterBarQueryState,
-} from "@/ui/filter-bar/value";
+} from "@/filter-bar/value";
 import {
   type ParserMap,
   parseAsArrayOf,
