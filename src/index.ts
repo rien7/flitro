@@ -1,2 +1,2 @@
-export * from "./logical/index.js";
-export * from "./filter-bar/index.js";
+export * from "./logical"
+export * from "./filter-bar"

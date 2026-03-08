@@ -6,9 +6,9 @@
 
 - 不传 `theme` 时，`FilterBar` 只保留交互、状态和结构，不附带内部视觉样式。
 - 想使用官方默认样式，需要从 `filtro/default-theme` 引入 `defaultFilterBarTheme`。
-- 想继续用默认配色 token，需要同时引入 `filtro/ui.css` 或 `filtro/default-theme.css`。
+- 想继续用默认配色 token，需要同时引入 `filtro/default-theme.css`。
 
-当前这份 `ui.css` 仍然是 Tailwind CSS v4 source file，不是预编译后的静态 CSS。
+当前这份 `default-theme.css` 仍然是 Tailwind CSS v4 source file，不是预编译后的静态 CSS。
 
 ## 1. Headless 用法
 
@@ -43,7 +43,7 @@ export function HeadlessExample() {
 ## 2. 启用默认主题
 
 ```tsx
-import "filtro/ui.css";
+import "filtro/default-theme.css";
 import { FilterBar, filtro } from "filtro";
 import { Button, defaultFilterBarTheme } from "filtro/default-theme";
 
@@ -72,7 +72,7 @@ export function DefaultThemeExample() {
 使用 `mergeFilterBarTheme` 从默认主题增量覆盖即可。
 
 ```tsx
-import "filtro/ui.css";
+import "filtro/default-theme.css";
 import { FilterBar, mergeFilterBarTheme } from "filtro";
 import { defaultFilterBarTheme } from "filtro/default-theme";
 
@@ -193,11 +193,11 @@ export function CompactExample() {
 - `booleanTrueButton`
 - `booleanFalseButton`
 
-## 5. 什么时候需要 `ui.css`
+## 5. 什么时候需要 `default-theme.css`
 
-只有在你使用默认主题 preset，或者想复用库里现在这套 `background / border / accent / destructive` token 时，才需要引入 `filtro/ui.css`。
+只有在你使用默认主题 preset，或者想复用库里现在这套 `background / border / accent / destructive` token 时，才需要引入 `filtro/default-theme.css`。
 
-为了让第三方项目能扫描到默认主题 preset 里用到的 Tailwind class，包发布时会保留 `src` 目录。这样 `ui.css` 中的 `@source "./**/*.{ts,tsx}"` 能在消费端继续找到这些 class 定义。
+为了让第三方项目能扫描到默认主题 preset 里用到的 Tailwind class，包发布时会保留 `src` 目录。这样 `default-theme.css` 中的 `@source "./**/*.{ts,tsx}"` 能在消费端继续找到这些 class 定义。
 
 如果你完全按 headless 模式使用，并且自己提供所有样式，可以不引入这个 CSS 文件。
 

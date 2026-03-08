@@ -12,7 +12,7 @@
 ## 1. 最短用法
 
 ```tsx
-import "filtro/ui.css";
+import "filtro/default-theme.css";
 import { FilterBar, filtro } from "filtro";
 import { Button, defaultFilterBarTheme } from "filtro/default-theme";
 

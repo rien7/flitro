@@ -45,7 +45,6 @@
 ## 当前目录结构
 
 - [`src/index.ts`](https://github.com/rien7/filtro/blob/main/src/index.ts): 根入口，导出 `logical` 和 `filter-bar`
-- [`src/default-theme/index.ts`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx): 默认主题子入口
 - [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical): 领域层，定义字段种类、操作符和值类型、AST
 - [`src/filter-bar/builder.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts): `filtro.string/number/select/...` builder API
 - [`src/filter-bar/types.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/types.ts): UI 字段类型、选项加载类型、自定义 render 类型
@@ -131,7 +130,7 @@ filtro.group("Basic", [/* fields */])
 ## 主题和样式边界
 
 - `filtro` 根入口不导出默认样式 preset
-- `defaultFilterBarTheme` 和 styled primitives 从 [`src/default-theme/index.ts`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx) 暴露
+- `defaultFilterBarTheme` 和 styled primitives 从 [`src/presets/default-theme/index.tsx`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx) 暴露
 - [`src/filter-bar/theme.tsx`](https://github.com/rien7/filtro/blob/main/src/filter-bar/theme.tsx) 只负责 theme slot contract、merge 和 provider
 - [`src/presets/default-theme/styles.css`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css) 是默认主题样式源文件
 
@@ -163,7 +162,6 @@ filtro.group("Basic", [/* fields */])
 - 测试脚本当前等同于类型检查，没有独立单测
 - playground 是理解行为的最快入口，参考 [`playground/playground-app.tsx`](https://github.com/rien7/filtro/blob/main/playground/playground-app.tsx)
 - 路径别名 `@/*` 指向 `src/*`
-- `src/ui/index.ts` 只是兼容 re-export，不再是主要实现目录
 
 ## 给后续代理的工作方式
 

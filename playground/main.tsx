@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { NuqsAdapter } from "nuqs/adapters/react";
 import { PlaygroundApp } from "./playground-app";
-import "../src/index.css";
+import "../src/presets/default-theme/styles.css";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");

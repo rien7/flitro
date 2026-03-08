@@ -1,5 +1,5 @@
-import { FieldKind } from "./field.js";
-import type { EnumFieldKind, FieldValueType } from "./field.js";
+import { FieldKind } from "./field";
+import type { EnumFieldKind, FieldValueType } from "./field";
 
 export const EmptyOperatorKind = {
   isEmpty: "isEmpty",
