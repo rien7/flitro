@@ -15,8 +15,8 @@ export type UIFieldRender = <
   onChange,
 }: {
   op: Op;
-  value: OperatorValueFor<Kind, Op>;
-  onChange: (value: OperatorValueFor<Kind, Op>) => void;
+  value: OperatorValueFor<Kind, Op> | null;
+  onChange: (value: OperatorValueFor<Kind, Op> | null) => void;
 }) => ReactNode;
 
 export interface UIFieldBase<

@@ -23,7 +23,7 @@ export function FilterValueEditor<FieldId extends string, Kind extends EnumField
     return null;
   }
 
-  if (field.render && item.value !== null) {
+  if (field.render) {
     return field.render({
       op: item.operator as never,
       value: item.value as never,

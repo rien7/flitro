@@ -102,6 +102,10 @@ function isValueCompatible(
     return value === null || value === undefined;
   }
 
+  if (value === null || value === undefined) {
+    return true;
+  }
+
   switch (field.kind) {
     case FieldKind.string:
     case FieldKind.select:
