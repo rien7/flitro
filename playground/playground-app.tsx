@@ -128,7 +128,7 @@ function NuqsDemoCard({
   fields: ReturnType<typeof useFiltroFields>;
   storageKey: string;
 }) {
-  const { onValueChange, value } = useNuqsFilterBarState({
+  const { onChange, value } = useNuqsFilterBarState({
     fields,
   });
   const currentSearch = typeof window === "undefined" ? "" : window.location.search;
@@ -147,7 +147,7 @@ function NuqsDemoCard({
         fields={fields}
         theme={defaultFilterBarTheme}
         value={value}
-        onValueChange={onValueChange}
+        onChange={onChange}
         viewsStorageKey={storageKey}
       >
         <div className="demo-toolbar">

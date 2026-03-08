@@ -112,7 +112,7 @@ export function useNuqsFilterBarState<
     return sanitizeFilterBarValues(uiFields, nextValues);
   }, [prefix, queryState, uiFields]);
 
-  const onValueChange = useCallback(
+  const onChange = useCallback(
     (nextValue: FilterBarValueType<FieldId, Kind>) => {
       const sanitizedValues = sanitizeFilterBarValues(uiFields, nextValue);
 
@@ -145,7 +145,7 @@ export function useNuqsFilterBarState<
   );
 
   return {
-    onValueChange,
+    onChange,
     value,
   };
 }

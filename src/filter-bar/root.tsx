@@ -161,7 +161,7 @@ export interface FilterBarRootProps<
   theme?: FilterBarThemeInput | null;
   value?: FilterBarValueType<FieldId, Kind>;
   defaultValue?: FilterBarValueType<FieldId, Kind>;
-  onValueChange?: (nextValue: FilterBarValueType<FieldId, Kind>) => void;
+  onChange?: (nextValue: FilterBarValueType<FieldId, Kind>) => void;
   viewsStorageKey?: string;
 }
 
@@ -171,7 +171,7 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
   theme,
   value,
   defaultValue,
-  onValueChange,
+  onChange,
   viewsStorageKey,
 }: FilterBarRootProps<FieldId, Kind>) {
   const { uiFieldEntries, uiFields } = useMemo(
@@ -259,11 +259,11 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           typeof nextState === "function" ? nextState(controlledValues) : nextState;
         const sanitizedValues = sanitizeFilterBarValues(uiFields, resolvedValue);
 
-        if (!onValueChange || areFilterBarValuesEqual(controlledValues, sanitizedValues)) {
+        if (!onChange || areFilterBarValuesEqual(controlledValues, sanitizedValues)) {
           return;
         }
 
-        onValueChange(sanitizedValues);
+        onChange(sanitizedValues);
         return;
       }
 
@@ -276,11 +276,11 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           return previous;
         }
 
-        onValueChange?.(sanitizedValues);
+        onChange?.(sanitizedValues);
         return sanitizedValues;
       });
     },
-    [controlledValues, isControlled, onValueChange, uiFields],
+    [controlledValues, isControlled, onChange, uiFields],
   );
 
   const saveView = useCallback((name: string) => {
