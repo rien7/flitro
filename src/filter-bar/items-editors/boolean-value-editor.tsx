@@ -27,7 +27,7 @@ export function BooleanValueEditor<FieldId extends string>({
           variant={item.value === true ? "secondary" : "ghost"}
           className={theme.classNames.booleanTrueButton}
           aria-pressed={item.value === true}
-          onClick={() => onChange(true)}
+          onClick={() => onChange(true, { valueChangeKind: "selected" })}
         >
           {field.options?.[0].label ?? theme.texts.booleanTrueFallback}
         </Button>
@@ -38,7 +38,7 @@ export function BooleanValueEditor<FieldId extends string>({
           variant={item.value === false ? "secondary" : "ghost"}
           className={theme.classNames.booleanFalseButton}
           aria-pressed={item.value === false}
-          onClick={() => onChange(false)}
+          onClick={() => onChange(false, { valueChangeKind: "selected" })}
         >
           {field.options?.[1].label ?? theme.texts.booleanFalseFallback}
         </Button>

@@ -33,7 +33,11 @@ const fields = [
         <>
           <input
             value={currentValue}
-            onChange={(event) => onChange(event.currentTarget.value)}
+            onChange={(event) =>
+              onChange(event.currentTarget.value, {
+                valueChangeKind: "typing",
+              })
+            }
           />
           {error ? <div>{error}</div> : null}
         </>
@@ -46,7 +50,7 @@ const fields = [
 
 - `op`: 当前 operator
 - `value`: 当前 operator 对应的值，可能是 `null`
-- `onChange`: 写回新值
+- `onChange`: 写回新值；可选第二个参数可声明 `valueChangeKind`
 - `validate`: 复用当前字段的 `.validate()` / `.zod()` 规则
 
 这几个值都来自当前 row 的内部状态。
@@ -95,7 +99,11 @@ filtro.date("releaseWindow")
     <PlaygroundCalendarDateEditor
       op={op}
       value={value}
-      onChange={onChange}
+      onChange={(nextValue) =>
+        onChange(nextValue, {
+          valueChangeKind: "selected",
+        })
+      }
     />
   ))
 ```
@@ -169,7 +177,9 @@ const isRelative =
         return;
       }
 
-      onChange(sortDateRange(formatDateValue(from), formatDateValue(to)));
+      onChange(sortDateRange(formatDateValue(from), formatDateValue(to)), {
+        valueChangeKind: "selected",
+      });
       return;
     }
 
@@ -178,7 +188,9 @@ const isRelative =
       return;
     }
 
-    onChange(formatDateValue(nextDate));
+    onChange(formatDateValue(nextDate), {
+      valueChangeKind: "selected",
+    });
   }}
 />
 ```
@@ -188,6 +200,20 @@ const isRelative =
 - playground 里的 `Calendar` 不是 `filtro` 导出的正式组件，而是 demo 自己的 `react-day-picker` 包装件
 - `Calendar` 的 range 选择值不是 `[string, string]`，而是 `{ from?: Date; to?: Date }`
 - 所以写回 `FilterBar` 前，需要再转换回 date operator 需要的字符串元组
+
+## 5.1 `valueChangeKind` 的用法
+
+如果你用了自定义 `render`，库不再知道这次值更新是：
+
+- 连续输入
+- 还是一次离散选择
+
+因此推荐你自己显式声明：
+
+- 文本 / 数字键盘输入：`{ valueChangeKind: "typing" }`
+- 日期选择 / 下拉选择 / 按钮切换：`{ valueChangeKind: "selected" }`
+
+如果你不传，当前实现会按 `selected` 处理。
 
 ## 6. 为什么默认 date editor 没有复用
 
@@ -212,5 +238,6 @@ const isRelative =
 
 - `render` 里优先只处理当前字段自己的交互，不要把更多 row 级逻辑搬进去。
 - 先按 operator 把 value 类型分清楚，再写 UI。
+- 自定义文本输入记得给 `onChange` 传 `valueChangeKind: "typing"`。
 - 如果是 date / number 这种多 operator 多 value shape 的字段，先准备好类型转换函数。
 - 如果需求已经变成“默认 editor 的 trigger / popup / content 需要分别开放”，说明现在的 `render` 粒度可能不够，应该考虑扩展更细的 slot，而不是继续把逻辑塞进单个 `render`。

@@ -49,7 +49,7 @@ export function SelectValueEditor<FieldId extends string>({
         open={open}
         value={value}
         onOpenChange={handleOpenChange}
-        onValueChange={onChange}
+        onValueChange={(nextValue) => onChange(nextValue, { valueChangeKind: "selected" })}
       >
         <SelectTrigger
           data-theme-slot={filterBarThemeSlot("selectTrigger", "editorControl")}

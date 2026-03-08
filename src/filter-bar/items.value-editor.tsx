@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { FieldKind, type EnumFieldKind } from "@/logical/field";
+import type { FilterBarValueChangeKind } from "@/filter-bar/change";
 import type { FilterBarValue } from "@/filter-bar/context";
 import { validateFieldValue } from "@/filter-bar/validation";
 import { isEmptyOperator } from "@/filter-bar/state";
@@ -22,7 +23,10 @@ export function FilterValueEditor<FieldId extends string, Kind extends EnumField
 }: {
   field: UIFieldForKind<FieldId, Kind>;
   item: FilterBarValue<FieldId, Kind>;
-  onChange: (value: FilterBarValue<FieldId, Kind>["value"]) => void;
+  onChange: (
+    value: FilterBarValue<FieldId, Kind>["value"],
+    options?: { valueChangeKind?: FilterBarValueChangeKind },
+  ) => void;
   onValidationChange: ((message: string | null) => void) | undefined;
   errorDescriptionId: string | undefined;
 }) {
@@ -40,7 +44,11 @@ export function FilterValueEditor<FieldId extends string, Kind extends EnumField
     return field.render({
       op: item.operator as never,
       value: item.value as never,
-      onChange: (value) => onChange(value as FilterBarValue<FieldId, Kind>["value"]),
+      onChange: (value, options) =>
+        onChange(
+          value as FilterBarValue<FieldId, Kind>["value"],
+          options,
+        ),
       validate: (value) =>
         validateFieldValue({
           field,

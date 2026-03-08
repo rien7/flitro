@@ -12,7 +12,7 @@ export function FilterItems({
 }: {
   className?: string;
 }) {
-  const { uiFields, values, setValues } = useFilterBar();
+  const { changeValues, uiFields, values } = useFilterBar();
   const theme = useFilterBarTheme();
   const fieldById = new Map(uiFields.map((field) => [field.id, field] as const));
   const activeItems = values.flatMap((item) => {
@@ -30,8 +30,13 @@ export function FilterItems({
     updater: (
       current: FilterBarValue<FieldId, Kind>,
     ) => FilterBarValue<FieldId, Kind>,
+      meta: {
+        completeness: "complete" | "incomplete";
+        valueChangeKind?: "typing" | "selected";
+        action: "operator" | "value";
+      },
   ) => {
-    setValues?.((previous) => {
+    changeValues?.((previous) => {
       const currentIndex = previous.findIndex((value) => value.fieldId === field.id);
       const item = previous[currentIndex];
 
@@ -44,11 +49,25 @@ export function FilterItems({
         item as unknown as FilterBarValue<FieldId, Kind>,
       ) as (typeof previous)[number];
       return nextValues;
-    });
+    }, meta.action === "value"
+      ? {
+          action: "value",
+          fieldId: field.id,
+          completeness: meta.completeness,
+          valueChangeKind: meta.valueChangeKind ?? "selected",
+        }
+      : {
+          action: "operator",
+          fieldId: field.id,
+          completeness: meta.completeness,
+        });
   };
 
   const removeItem = (fieldId: string) => {
-    setValues?.((previous) => removeFilterBarValue(previous, fieldId));
+    changeValues?.((previous) => removeFilterBarValue(previous, fieldId), {
+      action: "remove",
+      fieldId,
+    });
   };
 
   if (!activeItems.length) {
@@ -75,7 +94,7 @@ export function FilterItems({
           key={field.id}
           field={field as never}
           item={item as never}
-          onUpdate={(updater) => updateItem(field as never, updater)}
+          onUpdate={(updater, meta) => updateItem(field as never, updater, meta)}
           onRemove={() => removeItem(field.id)}
         />
       ))}

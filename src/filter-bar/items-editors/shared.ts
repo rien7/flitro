@@ -1,3 +1,4 @@
+import type { FilterBarValueChangeKind } from "@/filter-bar/change";
 import type { EnumFieldKind } from "@/logical/field";
 import type { FilterBarValue } from "@/filter-bar/context";
 import type { FlattenedSelectOption } from "@/filter-bar/types";
@@ -9,7 +10,10 @@ export interface FilterValueEditorProps<
 > {
   field: UIFieldForKind<FieldId, Kind>;
   item: FilterBarValue<FieldId, Kind>;
-  onChange: (value: FilterBarValue<FieldId, Kind>["value"]) => void;
+  onChange: (
+    value: FilterBarValue<FieldId, Kind>["value"],
+    options?: { valueChangeKind?: FilterBarValueChangeKind },
+  ) => void;
   onValidationChange: ((message: string | null) => void) | undefined;
   errorDescriptionId: string | undefined;
 }

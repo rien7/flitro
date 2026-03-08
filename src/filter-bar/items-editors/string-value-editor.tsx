@@ -52,7 +52,7 @@ export function StringValueEditor<FieldId extends string>({
       });
 
       setError(nextError);
-      onChange(null);
+      onChange(null, { valueChangeKind: "typing" });
       return;
     }
 
@@ -65,7 +65,7 @@ export function StringValueEditor<FieldId extends string>({
     setError(nextError);
 
     if (!nextError) {
-      onChange(nextDraft);
+      onChange(nextDraft, { valueChangeKind: "typing" });
     }
   }
 

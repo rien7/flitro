@@ -94,7 +94,7 @@ export function DateValueEditor<FieldId extends string>({
       });
 
       setError(nextError);
-      onChange(null);
+      onChange(null, { valueChangeKind: "typing" });
       return;
     }
 
@@ -115,7 +115,7 @@ export function DateValueEditor<FieldId extends string>({
     setError(nextError);
 
     if (!nextError) {
-      onChange(normalizedValue);
+      onChange(normalizedValue, { valueChangeKind: "typing" });
     }
   }
 
@@ -135,7 +135,7 @@ export function DateValueEditor<FieldId extends string>({
         });
 
         setError(nextError);
-        onChange(null);
+        onChange(null, { valueChangeKind: "selected" });
         return nextRangeDraft;
       }
 
@@ -159,7 +159,7 @@ export function DateValueEditor<FieldId extends string>({
       setError(nextError);
 
       if (!nextError) {
-        onChange(nextValue);
+        onChange(nextValue, { valueChangeKind: "selected" });
       }
 
       return nextRangeDraft;
@@ -178,7 +178,7 @@ export function DateValueEditor<FieldId extends string>({
       });
 
       setError(nextError);
-      onChange(null);
+      onChange(null, { valueChangeKind: "selected" });
       return;
     }
 
@@ -196,7 +196,7 @@ export function DateValueEditor<FieldId extends string>({
     setError(nextError);
 
     if (!nextError) {
-      onChange(nextDraft);
+      onChange(nextDraft, { valueChangeKind: "selected" });
     }
   }
 

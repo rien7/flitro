@@ -15,7 +15,11 @@ import {
   SelectValue,
 } from "@/filter-bar/internal/primitives/baseui/select";
 import type { FilterBarValue } from "@/filter-bar/context";
-import { isEmptyOperator, normalizeValueForOperator } from "@/filter-bar/state";
+import {
+  getFilterBarValueCompleteness,
+  isEmptyOperator,
+  normalizeValueForOperator,
+} from "@/filter-bar/state";
 import { filterBarThemeSlot, useFilterBarTheme } from "@/filter-bar/theme";
 import { getFieldAllowedOperators, hasFieldFixedOperator } from "@/filter-bar/value";
 import { cn } from "@/lib/utils";
@@ -32,7 +36,14 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
 }: {
   field: UIFieldForKind<FieldId, Kind>;
   item: FilterBarValue<FieldId, Kind>;
-  onUpdate: (updater: (current: FilterBarValue<FieldId, Kind>) => FilterBarValue<FieldId, Kind>) => void;
+  onUpdate: (
+    updater: (current: FilterBarValue<FieldId, Kind>) => FilterBarValue<FieldId, Kind>,
+    meta: {
+      action: "operator" | "value";
+      completeness: "complete" | "incomplete";
+      valueChangeKind?: "typing" | "selected";
+    },
+  ) => void;
   onRemove: () => void;
 }) {
   const theme = useFilterBarTheme();
@@ -71,18 +82,28 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
         {hasMultipleOperators ? (
           <Select<string>
             value={item.operator}
-            onValueChange={(nextOperator) =>
-              onUpdate((current) => ({
-                ...current,
-                operator: nextOperator as typeof current.operator,
-                allowOperators: [...allowedOperators] as typeof current.allowOperators,
+            onValueChange={(nextOperator) => {
+              const nextItem = {
+                ...item,
+                operator: nextOperator as typeof item.operator,
+                allowOperators: [...allowedOperators] as typeof item.allowOperators,
                 value: normalizeValueForOperator({
                   field,
                   operator: nextOperator as OperatorKindFor<typeof field.kind>,
-                  previousValue: current.value as never,
-                }) as typeof current.value,
-              }))
-            }
+                  previousValue: item.value as never,
+                }) as typeof item.value,
+              };
+
+              onUpdate(
+                () => nextItem,
+                {
+                  action: "operator",
+                  completeness: getFilterBarValueCompleteness(
+                    nextItem as FilterBarValue<string, EnumFieldKind>,
+                  ),
+                },
+              );
+            }}
           >
             <SelectTrigger
               data-theme-slot={filterBarThemeSlot("selectTrigger", "rowOperatorTrigger")}
@@ -134,12 +155,23 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
             <FilterValueEditor
               field={field}
               item={item}
-              onChange={(value) =>
-                onUpdate((current) => ({
-                  ...current,
+              onChange={(value, options) => {
+                const nextItem = {
+                  ...item,
                   value,
-                }))
-              }
+                };
+
+                onUpdate(
+                  () => nextItem,
+                  {
+                    action: "value",
+                    valueChangeKind: options?.valueChangeKind ?? "selected",
+                    completeness: getFilterBarValueCompleteness(
+                      nextItem as FilterBarValue<string, EnumFieldKind>,
+                    ),
+                  },
+                );
+              }}
               onValidationChange={setValidationMessage}
               errorDescriptionId={errorId}
             />

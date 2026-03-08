@@ -78,7 +78,7 @@ export function NumberValueEditor<FieldId extends string>({
       });
 
       setError(nextError);
-      onChange(null);
+      onChange(null, { valueChangeKind: "typing" });
       return;
     }
 
@@ -98,7 +98,7 @@ export function NumberValueEditor<FieldId extends string>({
     setError(nextError);
 
     if (!nextError) {
-      onChange(nextValue);
+      onChange(nextValue, { valueChangeKind: "typing" });
     }
   }
 
@@ -118,7 +118,7 @@ export function NumberValueEditor<FieldId extends string>({
         });
 
         setError(nextError);
-        onChange(null);
+        onChange(null, { valueChangeKind: "typing" });
         return nextRangeDraft;
       }
 
@@ -145,7 +145,7 @@ export function NumberValueEditor<FieldId extends string>({
       setError(nextError);
 
       if (!nextError) {
-        onChange(nextValue);
+        onChange(nextValue, { valueChangeKind: "typing" });
       }
 
       return nextRangeDraft;

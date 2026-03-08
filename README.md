@@ -136,6 +136,7 @@ export function StyledExample() {
 - Builder API with strong TypeScript inference
 - Grouped field definitions for trigger menus
 - Uncontrolled and controlled `FilterBar.Root`
+- Optional `useFilterBarController()` for draft/applied workflows
 - Built-in row editors for all current field kinds
 - Custom field value editors via `.render(...)`
 - Field-level validation via `.validate(...)`
@@ -278,6 +279,68 @@ The helper exports around this model include:
 - `serializeFilterBarValue`
 - `deserializeFilterBarValue`
 
+## Controlled And Controller
+
+`FilterBar.Root` remains a controlled/uncontrolled editor.
+
+Controlled usage:
+
+```tsx
+const [value, setValue] = useState<FilterBarValueType>([]);
+
+<FilterBar.Root
+  fields={fields}
+  value={value}
+  onChange={(nextValue) => setValue(nextValue)}
+>
+  <FilterBar.Trigger render={<button type="button" />}>
+    Add Filter
+  </FilterBar.Trigger>
+  <FilterBar.Clear render={<button type="button" />}>
+    Clear
+  </FilterBar.Clear>
+  <FilterBar.Items />
+</FilterBar.Root>
+```
+
+If the page needs separate draft and applied filters, use `useFilterBarController()`:
+
+```tsx
+const filters = useFilterBarController({
+  defaultValue: [],
+  applyMode: "manual",
+});
+
+<FilterBar.Root
+  fields={fields}
+  value={filters.draftValue}
+  onChange={filters.onDraftChange}
+>
+  <FilterBar.Trigger render={<button type="button" />}>
+    Add Filter
+  </FilterBar.Trigger>
+  <FilterBar.Clear render={<button type="button" />}>
+    Clear
+  </FilterBar.Clear>
+  <FilterBar.Items />
+</FilterBar.Root>
+
+<button type="button" onClick={filters.apply} disabled={!filters.isDirty}>
+  Apply
+</button>
+```
+
+`FilterBar.Root` now calls controlled `onChange` as:
+
+```ts
+onChange?: (
+  nextValue: FilterBarValueType,
+  meta?: FilterBarChangeMeta,
+) => void;
+```
+
+The extra `meta` describes what changed. `useFilterBarController()` uses it to drive automatic apply behavior.
+
 ## Styling Notes
 
 `defaultFilterBarTheme` is in `filtro/default-theme`, not in the root entry.
@@ -335,6 +398,10 @@ The playground imports the source tree directly, so it is the fastest way to ins
 
 ## Additional Docs
 
+- [`docs/filter-bar-controller.md`](/Users/rien7/Developer/filtro/docs/filter-bar-controller.md)
+- [`docs/filter-bar-nuqs.md`](/Users/rien7/Developer/filtro/docs/filter-bar-nuqs.md)
+- [`docs/filter-bar-render.md`](/Users/rien7/Developer/filtro/docs/filter-bar-render.md)
+- [`docs/filter-bar-validation.md`](/Users/rien7/Developer/filtro/docs/filter-bar-validation.md)
 - [`docs/filter-bar-styling.md`](/Users/rien7/Developer/filtro/docs/filter-bar-styling.md)
 - [`docs/filter-bar-views.md`](/Users/rien7/Developer/filtro/docs/filter-bar-views.md)
 - [`docs/filter-bar-options.md`](/Users/rien7/Developer/filtro/docs/filter-bar-options.md)

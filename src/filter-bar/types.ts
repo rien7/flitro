@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { FilterBarValueChangeKind } from "./change";
 import {
   FieldKind,
   type EnumFieldKind,
@@ -16,7 +17,10 @@ export type UIFieldRender = <
 }: {
   op: Op;
   value: OperatorValueFor<Kind, Op> | null;
-  onChange: (value: OperatorValueFor<Kind, Op> | null) => void;
+  onChange: (
+    value: OperatorValueFor<Kind, Op> | null,
+    options?: { valueChangeKind?: FilterBarValueChangeKind },
+  ) => void;
   validate: (value: OperatorValueFor<Kind, Op> | null) => string | null;
 }) => ReactNode;
 

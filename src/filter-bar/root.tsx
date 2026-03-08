@@ -3,12 +3,12 @@ import {
   useEffect,
   useMemo,
   useState,
-  type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from "react";
 import { type EnumFieldKind } from "@/logical/field";
 import type { FieldDefinition } from "@/filter-bar/builder";
+import type { FilterBarChangeMeta } from "@/filter-bar/change";
 import {
   FilterBarContextProvider,
   type FilterBarContextType,
@@ -161,7 +161,10 @@ export interface FilterBarRootProps<
   theme?: FilterBarThemeInput | null;
   value?: FilterBarValueType<FieldId, Kind>;
   defaultValue?: FilterBarValueType<FieldId, Kind>;
-  onChange?: (nextValue: FilterBarValueType<FieldId, Kind>) => void;
+  onChange?: (
+    nextValue: FilterBarValueType<FieldId, Kind>,
+    meta?: FilterBarChangeMeta<FieldId>,
+  ) => void;
   viewsStorageKey?: string;
 }
 
@@ -252,8 +255,11 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
     }
   }, [activeView, activeViewId, pendingView, pendingViewId, values]);
 
-  const setValues = useCallback<Dispatch<SetStateAction<FilterBarValueType<FieldId, Kind>>>>(
-    (nextState) => {
+  const updateValues = useCallback(
+    (
+      nextState: SetStateAction<FilterBarValueType<FieldId, Kind>>,
+      meta?: FilterBarChangeMeta<FieldId>,
+    ) => {
       if (isControlled) {
         const resolvedValue =
           typeof nextState === "function" ? nextState(controlledValues) : nextState;
@@ -263,7 +269,7 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           return;
         }
 
-        onChange(sanitizedValues);
+        onChange(sanitizedValues, meta);
         return;
       }
 
@@ -276,11 +282,21 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           return previous;
         }
 
-        onChange?.(sanitizedValues);
+        onChange?.(sanitizedValues, meta);
         return sanitizedValues;
       });
     },
     [controlledValues, isControlled, onChange, uiFields],
+  );
+
+  const changeValues = useCallback(
+    (
+      nextState: SetStateAction<FilterBarValueType<FieldId, Kind>>,
+      meta: FilterBarChangeMeta<FieldId>,
+    ) => {
+      updateValues(nextState, meta);
+    },
+    [updateValues],
   );
 
   const saveView = useCallback((name: string) => {
@@ -318,8 +334,8 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
 
     setActiveViewId(null);
     setPendingViewId(viewId);
-    setValues(nextView.values);
-  }, [savedViews, setValues]);
+    updateValues(nextView.values);
+  }, [savedViews, updateValues]);
 
   const deleteView = useCallback((viewId: string) => {
     setSavedViews((previous) => previous.filter((viewEntry) => viewEntry.id !== viewId));
@@ -336,7 +352,7 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           values,
           savedViews,
           activeView,
-          setValues,
+          changeValues,
           saveView,
           applyView,
           deleteView,

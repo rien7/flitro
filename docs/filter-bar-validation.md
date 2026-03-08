@@ -287,7 +287,7 @@ filtro.number("amount").render(({ value, onChange, validate }) => {
     if (!nextDraft) {
       const nextError = validate(null);
       setError(nextError);
-      onChange(null);
+      onChange(null, { valueChangeKind: "typing" });
       return;
     }
 
@@ -302,7 +302,7 @@ filtro.number("amount").render(({ value, onChange, validate }) => {
     setError(nextError);
 
     if (!nextError) {
-      onChange(nextValue);
+      onChange(nextValue, { valueChangeKind: "typing" });
     }
   }
 
@@ -322,6 +322,18 @@ filtro.number("amount").render(({ value, onChange, validate }) => {
 
 - parse 失败时，不要调用 `onChange(illegalValue)`
 - 想保留非法输入，就必须自己维护本地 draft
+
+如果你的自定义 `render` 是连续输入控件，记得给 `onChange` 传：
+
+```ts
+{ valueChangeKind: "typing" }
+```
+
+如果是日期选择、下拉选择、按钮切换这类离散操作，则传：
+
+```ts
+{ valueChangeKind: "selected" }
+```
 
 ## 7. 什么时候用哪一种
 

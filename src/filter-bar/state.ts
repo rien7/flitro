@@ -4,6 +4,7 @@ import {
   NumberOperatorKind,
   type OperatorKindFor,
 } from "@/logical/operator";
+import type { FilterBarCompleteness } from "@/filter-bar/change";
 import type { FilterBarValue, FilterBarValueType } from "@/filter-bar/context";
 import { getFieldAllowedOperators, isEmptyOperator } from "@/filter-bar/value";
 import type {
@@ -120,6 +121,69 @@ export function createFilterBarValue<FieldId extends string>(
       previousValue: (initialValue ?? null) as FilterBarValue<FieldId, typeof field.kind>["value"],
     }),
   } as FilterBarValue<FieldId, typeof field.kind>;
+}
+
+export function getFilterBarValueCompleteness(
+  value: FilterBarValue<string, EnumFieldKind>,
+): FilterBarCompleteness {
+  if (isEmptyOperator(value.operator)) {
+    return "complete";
+  }
+
+  switch (value.kind) {
+    case FieldKind.string:
+    case FieldKind.select:
+      return typeof value.value === "string" && value.value.length > 0
+        ? "complete"
+        : "incomplete";
+    case FieldKind.number:
+      if (
+        value.operator === NumberOperatorKind.between ||
+        value.operator === NumberOperatorKind.notBetween
+      ) {
+        return Array.isArray(value.value) &&
+          value.value.length === 2 &&
+          typeof value.value[0] === "number" &&
+          typeof value.value[1] === "number"
+          ? "complete"
+          : "incomplete";
+      }
+
+      return typeof value.value === "number" ? "complete" : "incomplete";
+    case FieldKind.date:
+      if (
+        value.operator === DateOperatorKind.lastNDays ||
+        value.operator === DateOperatorKind.nextNDays
+      ) {
+        return typeof value.value === "number" ? "complete" : "incomplete";
+      }
+
+      if (
+        value.operator === DateOperatorKind.between ||
+        value.operator === DateOperatorKind.notBetween
+      ) {
+        return Array.isArray(value.value) &&
+          value.value.length === 2 &&
+          typeof value.value[0] === "string" &&
+          value.value[0].length > 0 &&
+          typeof value.value[1] === "string" &&
+          value.value[1].length > 0
+          ? "complete"
+          : "incomplete";
+      }
+
+      return typeof value.value === "string" && value.value.length > 0
+        ? "complete"
+        : "incomplete";
+    case FieldKind.multiSelect:
+      return Array.isArray(value.value) && value.value.length > 0
+        ? "complete"
+        : "incomplete";
+    case FieldKind.boolean:
+      return typeof value.value === "boolean" ? "complete" : "incomplete";
+    default:
+      return "incomplete";
+  }
 }
 
 export function upsertFilterBarValue(
