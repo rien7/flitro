@@ -1,22 +1,16 @@
-# FilterBar Styling And Themes
+# FilterBar Styling and Themes
 
-`FilterBar` 始终是当前这套具体的 React UI 实现。区别只在于你是否叠加 `filtro/default-theme` 这个可选视觉 preset。
+`FilterBar` is always the same concrete React UI implementation. Styling only changes whether you add the optional `filtro/default-theme` preset on top.
 
-这意味着：
+That means:
 
-- 不传 `theme` 时，你拿到的是 base FilterBar: 交互、状态、结构和内部 Base UI wrapper 都在，但没有 preset 视觉层。
-- 想使用官方默认样式，需要从 `filtro/default-theme` 引入 `defaultFilterBarTheme`。
-- 想继续复用这套默认 token 和预编译 CSS，需要同时引入 `filtro/default-theme.css`。
+- Without a `theme`, you still get the full `FilterBar` structure and behavior
+- To use the official preset, import `defaultFilterBarTheme` from `filtro/default-theme`
+- To reuse the preset CSS tokens and styles, also import `filtro/default-theme.css`
 
-当前这份 `default-theme.css` 是预编译后的静态 CSS，可以直接在消费端引入。
+The default stylesheet is precompiled static CSS.
 
-这次 display 相关扩展遵循同一条规则：
-
-- 组件层只输出结构、状态和 `data-theme-slot` / `data-area`
-- `pinned` / `suggestion` 的视觉差异放在 preset 的 classNames 和 CSS 选择器里
-- 不把视觉判断重新写回 `FilterBar` 组件逻辑
-
-## 1. Base FilterBar 用法
+## Base Usage
 
 ```tsx
 import { FilterBar, filtro } from "filtro";
@@ -44,9 +38,14 @@ export function BaseExample() {
 }
 ```
 
-这种模式下不需要 `filtro/default-theme`。你可以直接给 render props、`className` 和自定义 theme slot 提供自己的样式。
+In this mode you can style the UI yourself through:
 
-## 2. 启用默认主题
+- `render={<... />}` on triggers and buttons
+- `className`
+- `theme.classNames`
+- `theme.primitiveClassNames`
+
+## Enable the Default Preset
 
 ```tsx
 import "filtro/default-theme.css";
@@ -68,14 +67,14 @@ export function DefaultThemeExample() {
 }
 ```
 
-`defaultFilterBarTheme` 做了两件事：
+`defaultFilterBarTheme` does two things:
 
-- 给 `FilterBar` 自己的 `data-theme-slot` 注入默认布局 class。
-- 给内部 Base UI wrapper 的 `data-slot` 注入默认 primitive class。
+- Adds default class names to `FilterBar`'s own `data-theme-slot` elements
+- Adds default class names to the internal Base UI primitive wrappers via their `data-slot` mappings
 
-## 3. 只改一部分样式
+## Partial Overrides
 
-使用 `mergeFilterBarTheme` 从默认主题增量覆盖即可。
+Use `mergeFilterBarTheme()` to extend a base theme incrementally:
 
 ```tsx
 import "filtro/default-theme.css";
@@ -94,33 +93,27 @@ const compactTheme = mergeFilterBarTheme(defaultFilterBarTheme, {
     dropdownMenuItem: "text-xs",
   },
 });
-
-export function CompactExample() {
-  return <FilterBar.Root fields={fields} theme={compactTheme}>...</FilterBar.Root>;
-}
 ```
 
-`theme` 有两层样式面：
+## Theme Surfaces
 
-- `classNames`
-  - 对应 `FilterBar` 自己输出的 `data-theme-slot`
-- `primitiveClassNames`
-  - 对应内部 Base UI wrapper 的 camelCase slot key
-  - 最终会映射到 DOM 上的 kebab-case `data-slot`
+`theme` has two styling surfaces:
 
-例如：
+- `classNames`: targets `FilterBar`'s `data-theme-slot` attributes
+- `primitiveClassNames`: targets internal primitive wrappers by camelCase slot name
 
-- `classNames.rowValue` 会命中 `data-theme-slot~="rowValue"`
-- `primitiveClassNames.selectTrigger` 会命中 `data-slot="select-trigger"`
+Examples:
 
-这两层都会按 slot 用 `cn` / `twMerge` 合并，所以：
+- `classNames.rowValue` targets `data-theme-slot~="rowValue"`
+- `primitiveClassNames.selectTrigger` targets the primitive that renders `data-slot="select-trigger"`
 
-- 后传入的 theme 会覆盖前面的冲突 class
-- 组件实例上的显式 `className` 仍然可以覆盖 theme
+Theme values are merged slot by slot with `cn` and `twMerge`, so later theme inputs and explicit `className` props win on conflicts.
 
-每个可主题化的 FilterBar DOM 节点还会带一个 `data-theme-slot` 属性，值和 `FilterBarThemeClassNameSlot` 完全对齐。
+## `data-theme-slot`
 
-当一个节点同时承载多个 slot 时，这个属性会是空格分隔的 token 列表，例如：
+Each themeable `FilterBar` DOM node exposes a `data-theme-slot` attribute.
+
+Some nodes carry multiple slots, so the value is a space-separated token list:
 
 ```css
 [data-theme-slot~="rowRemoveButton"] {
@@ -132,11 +125,9 @@ export function CompactExample() {
 }
 ```
 
-## 4. 可覆盖的主题字段
+## Theme Text and Icon Fields
 
-### `texts`
-
-可替换这些文案：
+`texts` currently includes:
 
 - `emptyState`
 - `searchFieldsPlaceholder`
@@ -146,7 +137,6 @@ export function CompactExample() {
 - `noOptions`
 - `noMatchingFields`
 - `noSavedViews`
-- `viewsTriggerFallback`
 - `moreViews`
 - `saveViewTriggerFallback`
 - `exitView`
@@ -156,16 +146,20 @@ export function CompactExample() {
 - `booleanFalseFallback`
 - `removeLabelFallback`
 
-### `icons`
+Also exposed in the type but not currently consumed by the built-in UI:
+
+- `viewsTriggerFallback`
+
+`icons` currently includes:
 
 - `remove`
 - `fieldKinds`
 
-`fieldKinds` 会在 `FilterBar.Trigger` 传入 `iconMapping={true}` 时作为默认字段图标映射。
+`fieldKinds` is used when `FilterBar.Trigger` receives `iconMapping={true}`.
 
-### `classNames`
+## `classNames` Slots
 
-目前支持这些 slot：
+Current `classNames` slot keys:
 
 - `contentRoot`
 - `pinnedItemsRoot`
@@ -215,20 +209,13 @@ export function CompactExample() {
 - `booleanTrueButton`
 - `booleanFalseButton`
 
-其中新增的 display 相关 slot 分别对应：
+Exposed in the theme type but not currently wired to a distinct built-in element:
 
-- `contentRoot`
-  - `FilterBar.Content` 的外层容器
-- `pinnedItemsRoot`
-  - `FilterBar.PinnedItems` 的外层容器
-- `suggestedItemsRoot`
-  - `FilterBar.SuggestedItems` 的外层容器
-- `activeItemsRoot`
-  - `FilterBar.ActiveItems` 的外层容器
+- `viewsButtonActive`
 
-### `primitiveClassNames`
+## `primitiveClassNames` Slots
 
-目前支持这些 camelCase slot：
+Current primitive slots:
 
 - `button`
 - `input`
@@ -264,17 +251,13 @@ export function CompactExample() {
 - `buttonGroupText`
 - `buttonGroupSeparator`
 
-这些 key 只在 theme API 中使用 camelCase。真正渲染到 DOM 上的仍然是 Base UI 风格的 kebab-case `data-slot`。
+These keys are camelCase in the theme API, but the rendered DOM still uses kebab-case `data-slot` values.
 
-## 5. 什么时候需要 `default-theme.css`
+## When You Need `default-theme.css`
 
-只有在你使用默认主题 preset，或者想复用库里现在这套 `background / border / accent / destructive` token 时，才需要引入 `filtro/default-theme.css`。
+Import `filtro/default-theme.css` only if:
 
-如果你只使用 base FilterBar，并且自己提供所有样式，可以不引入这个 CSS 文件。
+- You use `defaultFilterBarTheme`
+- You want to reuse the preset's current visual tokens and utility classes
 
-## 6. 设计建议
-
-- 想保留现有视觉风格时，用 `defaultFilterBarTheme` 作为 base，再增量覆盖。
-- 想接入自己的 design system 时，先决定是否需要 `default-theme.css`，然后分别从 `classNames` 和 `primitiveClassNames` 接管。
-- preset 里的 `Button` / `Input` 这类 convenience wrapper 属于 `filtro/default-theme`，不要把它们和内部 `filter-bar/internal/primitives/baseui` wrapper 混为一层。
-- 如果后面需要更深层的结构替换，再继续往 render props / 自定义 editor 方向扩展，不要把更多视觉 class 重新写回 `FilterBar` 组件内部。
+If you fully style the base `FilterBar` yourself, you do not need that CSS file.

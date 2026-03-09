@@ -1,32 +1,26 @@
-# FilterBar With nuqs
+# FilterBar With `nuqs`
 
-`FilterBar` 现在支持受控模式，因此 URL 同步不再靠内部插件机制，而是通过一个可选的状态适配器子入口完成：
+`FilterBar` supports controlled mode, so URL synchronization lives in an optional adapter entrypoint instead of inside the core package:
 
-- 主包继续只提供 `FilterBar` 本身
-- 需要 URL query state 的项目额外安装 `nuqs`
-- 然后从 `filtro/nuqs` 接入 `useNuqsFilterBarState`
+- The root package keeps shipping `FilterBar`
+- Apps that need URL state install `nuqs`
+- `filtro/nuqs` bridges `FilterBarValue[]` and query state
 
-这套设计的目标是：
+This keeps the package decoupled from any single router or framework adapter.
 
-- 不使用 URL 同步的人不需要安装 `nuqs`
-- `filtro` 不绑定具体 router 或 framework adapter
-- `FilterBar` 仍然保持当前的一字段一条件模型
-
-## 1. 安装
+## Installation
 
 ```bash
 pnpm add filtro nuqs
 ```
 
-`nuqs` 是 `filtro` 的可选 peer dependency。
+`nuqs` is an optional peer dependency.
 
-如果你的应用已经装了 `filtro`，只在需要 URL 同步时再补装 `nuqs` 即可。
+## Add a `NuqsAdapter`
 
-## 2. 先给应用挂 `NuqsAdapter`
+`filtro/nuqs` does not install the adapter for you. The host app must wrap itself with the correct `nuqs` adapter.
 
-`filtro/nuqs` 不会自动包裹 adapter，宿主应用需要按自己的框架接官方 adapter。
-
-React SPA / Vite 示例：
+React SPA / Vite example:
 
 ```tsx
 import { StrictMode } from "react";
@@ -44,15 +38,15 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-Next.js、Remix、React Router 等其它运行时请直接使用 `nuqs` 官方对应 adapter。
+For Next.js, Remix, React Router, and other runtimes, use the official `nuqs` adapter for that environment.
 
-参考：
+Reference:
 
 - [nuqs adapters](https://nuqs.dev/docs/adapters)
 
-## 3. 最短用法
+## Basic Usage
 
-`useNuqsFilterBarState` 会把 URL query string 映射成 `FilterBar.Root` 的受控 `value` / `onChange`。
+`useNuqsFilterBarState()` maps the URL query string to controlled `value` and `onChange` props for `FilterBar.Root`.
 
 ```tsx
 import { FilterBar, filtro } from "filtro";
@@ -97,46 +91,39 @@ export function Filters() {
 }
 ```
 
-效果：
+Result:
 
-- 首次渲染从 URL 恢复筛选状态
-- 用户修改筛选时自动写回 query string
-- 浏览器前进 / 后退会反向更新 `FilterBar`
+- Initial render reads filters from the URL
+- Filter edits write back to the query string
+- Browser back/forward updates the `FilterBar`
 
-## 4. `FilterBar.Root` 的受控模式
+Important: just like any controlled `FilterBar`, this controls active `FilterBarValue[]` only. Incomplete row drafts remain internal to `FilterBar`.
 
-为了支持这类外部状态源，`FilterBar.Root` 现在有两种模式：
+## `FilterBar.Root` Controlled Mode
 
-### 非受控
+Uncontrolled:
 
 ```tsx
 <FilterBar.Root fields={fields}>...</FilterBar.Root>
 ```
 
-- 内部自己维护状态
-- 行为和旧版本一致
-
-### 受控
+Controlled:
 
 ```tsx
-<FilterBar.Root
-  fields={fields}
-  value={value}
-  onChange={setValue}
->
+<FilterBar.Root fields={fields} value={value} onChange={setValue}>
   ...
 </FilterBar.Root>
 ```
 
-- 外部提供当前值
-- 内部所有增删改都只走 `onChange`
-- `defaultValue` 只在非受控模式下生效
+In controlled mode:
 
-`filtro/nuqs` 本质上只是一个把 URL 变成 `value/onChange` 的适配器。
+- The active value array comes from outside
+- Meaningful active changes flow through `onChange`
+- `defaultValue` only matters in uncontrolled mode
 
-## 5. Hook API
+`filtro/nuqs` is just one external state adapter that happens to use the URL.
 
-### `useNuqsFilterBarState`
+## Hook API
 
 ```ts
 useNuqsFilterBarState({
@@ -147,30 +134,25 @@ useNuqsFilterBarState({
 })
 ```
 
-返回值：
+Return value:
 
 ```ts
 {
-  value: FilterBarValueType
-  onChange: (nextValue: FilterBarValueType) => void
+  value: FilterBarValueType;
+  onChange: (nextValue: FilterBarValueType) => void;
 }
 ```
 
-参数说明：
+Arguments:
 
-- `fields`: 传给 `FilterBar.Root` 的同一组字段定义
-- `prefix`: query key 前缀，避免页面上多个 `FilterBar` 互相冲突
-- `history`: 透传给 `nuqs/useQueryStates`
-- `shallow`: 透传给 `nuqs/useQueryStates`
+- `fields`: the same field definitions passed to `FilterBar.Root`
+- `prefix`: prefixes all query keys so multiple filter bars can coexist
+- `history`: passed through to `nuqs/useQueryStates`
+- `shallow`: passed through to `nuqs/useQueryStates`
 
-## 6. 和 `useFilterBarController()` 组合
+## Pairing With `useFilterBarController()`
 
-如果你希望：
-
-- `FilterBar` 里先编辑 draft
-- 点击 Apply 后才写回 URL
-
-不要让 `nuqs` 直接控制 `Root`，而应该让它控制 controller 的 applied 通道。
+If you want users to edit first and only write to the URL on Apply, let `nuqs` own the applied channel and put the controller in front of it:
 
 ```tsx
 import { FilterBar, filtro, useFilterBarController } from "filtro";
@@ -220,83 +202,57 @@ export function UrlBackedFilters() {
 }
 ```
 
-这条组合方式的职责是固定的：
+Recommended default: `history: "replace"`.
 
-- `Root` 只编辑 `draftValue`
-- controller 负责 `draft -> applied`
-- `nuqs` 只负责 applied value 和 URL 之间的同步
+## Default Query Key Rules
 
-第一版推荐 `history: "replace"`。
+The adapter does not store the whole filter bar in one JSON blob. It generates per-field query keys.
 
-## 7. 默认 query key 规则
+If the field id is `status` and the prefix is `demo_`:
 
-`filtro/nuqs` 默认不是把整个筛选写进一个 JSON 参数，而是按字段拆开成多组 key。
+- Value key: `demo_status`
+- Operator key: `demo_statusOp`
+- Range start key: `demo_statusFrom`
+- Range end key: `demo_statusTo`
 
-假设字段 id 是 `status`，前缀是 `demo_`：
+Encoding rules:
 
-- 值 key: `demo_status`
-- operator key: `demo_statusOp`
-- 区间起点 key: `demo_statusFrom`
-- 区间终点 key: `demo_statusTo`
+- Fixed-operator fields: do not write `${fieldId}Op`
+- String and select: value in `${fieldId}`, operator in `${fieldId}Op`
+- Number:
+  - Single-value operators use `${fieldId}`
+  - `between` / `notBetween` use `${fieldId}From` and `${fieldId}To`
+- Date:
+  - Single-value operators use `${fieldId}`
+  - `between` / `notBetween` use `${fieldId}From` and `${fieldId}To`
+  - `lastNDays` / `nextNDays` also use `${fieldId}`
+- Multi-select: value in `${fieldId}` with `nuqs` array parsing
+- Boolean: value in `${fieldId}`
+- Empty operators `isEmpty` and `isNotEmpty`: only `${fieldId}Op` is written
 
-不同字段的编码规则：
+## Invalid URL Handling
 
-- 固定 operator 字段
-  - 不写 `${fieldId}Op`
-  - 直接使用字段定义上的固定 operator 解析 value
-- 非固定但只保留一个 allowed operator 的字段
-  - 仍然会写 `${fieldId}Op`
-  - URL 语义上仍然是可显式指定 operator，只是当前配置里只有一个可选项
-- `string`
-  - 值写到 `${fieldId}`
-  - operator 写到 `${fieldId}Op`
-- `select`
-  - 同 `string`
-- `number`
-  - 单值 operator 写到 `${fieldId}`
-  - `between/notBetween` 写到 `${fieldId}From` 和 `${fieldId}To`
-- `date`
-  - 单值 operator 写到 `${fieldId}`
-  - `between/notBetween` 写到 `${fieldId}From` 和 `${fieldId}To`
-  - `lastNDays/nextNDays` 写到 `${fieldId}`
-- `multiSelect`
-  - 值写到 `${fieldId}`
-  - 使用 `nuqs` 的数组 parser
-- `boolean`
-  - 值写到 `${fieldId}`
+`filtro/nuqs` sanitizes query state against the current field definitions before handing it to `FilterBar`.
 
-空值 operator：
+These cases are dropped:
 
-- `isEmpty`
-- `isNotEmpty`
+- The field id no longer exists
+- The operator is not allowed for the field
+- The value shape does not match the operator
+- Only one side of a range is present
 
-这两种情况下只写 `${fieldId}Op`，不会再写 value key。
+That means:
 
-## 8. 非法 URL 的处理方式
+- Old shared URLs degrade safely
+- Field or operator changes do not poison the UI
+- Old operator keys are ignored when a field becomes fixed-operator
 
-`filtro/nuqs` 会先按字段定义做清洗，再把结果喂给 `FilterBar`。
+## Advanced Usage: Build Parsers Only
 
-以下情况会被直接忽略：
-
-- query 中的字段在当前 `fields` 里不存在
-- operator 不在字段的 `allowedOperators` 里
-- value 类型和 operator 不匹配
-- 区间值只传了一半
-
-这意味着：
-
-- 分享旧 URL 到新版本页面时，失效条件会被自动丢弃
-- 字段或 operator 配置变化后，不会把非法状态塞回 UI
-- 字段改成固定 operator 后，旧的 `${fieldId}Op` 会被忽略，当前值按固定 operator 解释
-
-## 8. 高级用法：自己接 `useQueryStates`
-
-如果你已经有自己的 query state 组织方式，可以只用 parser 生成器：
+If you already own your `useQueryStates` setup, use the parser generator directly:
 
 ```tsx
-import { useMemo } from "react";
 import { useQueryStates } from "nuqs";
-
 import { createFilterBarNuqsParsers } from "filtro/nuqs";
 
 const parsers = createFilterBarNuqsParsers(fields, { prefix: "orders_" });
@@ -311,21 +267,19 @@ function Example() {
 }
 ```
 
-这个 API 适合：
+Use this when:
 
-- 你想把筛选和分页共用同一个 `useQueryStates`
-- 你想在 `FilterBar` 之外直接读写这些 query key
-- 你需要更细粒度地组合 `nuqs` parser
+- Filters need to share a query state object with pagination or sorting
+- You want to read or write the query keys outside `FilterBar`
+- You want finer control over `nuqs` composition
 
-## 9. 当前约束
+## Current Scope
 
-这个适配器遵循当前 `FilterBar` 的模型，不会扩展成更复杂的 AST。
+This adapter follows the current flat `FilterBar` model:
 
-当前限制：
+- One condition per field
+- No duplicate field conditions
+- No nested `AND` / `OR` groups
+- No `FilterRoot` output
 
-- 一字段最多只有一条条件
-- 不支持同字段重复条件
-- 不支持 AND / OR 分组
-- 不输出 `FilterRoot` AST
-
-如果后面要做嵌套 group/filter builder，不应该直接往这套 query 编码上硬扩展，而应该重新设计状态模型。
+If the state model evolves into nested groups or a true builder, the URL encoding should be redesigned instead of stretched further.

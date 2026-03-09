@@ -1,16 +1,16 @@
 # FilterBar Options
 
-`select` / `multiSelect` 字段现在支持三种 options 来源：
+`select` and `multiSelect` fields support three option sources:
 
-- 静态数组：最简单，适合固定字典
-- async loader：适合直接请求远程 options
-- `useOptions` hook：适合 TanStack Query、SWR、自建 store、复杂缓存逻辑
+- Static arrays
+- Async loaders via `.options(async ...)`
+- Custom hooks via `.useOptions(...)`
 
-这三种方式都服务于当前这套“扁平 FilterBar”实现，不是未来规划里的嵌套 builder。
+All three serve the current flat `FilterBar` implementation.
 
-## 1. 静态数组
+## Static Arrays
 
-静态 options 仍然是最直接的方式：
+Static options are the simplest path:
 
 ```tsx
 import { filtro } from "filtro";
@@ -26,22 +26,16 @@ const fields = [
 ];
 ```
 
-特点：
+Current behavior:
 
-- 不发请求
-- `status` 始终是 `SelectOptionsStatus.success`
-- 搜索默认在前端本地过滤
-- `loadOptions("open" | "render")` 对静态数组没有实际差异
+- No requests
+- Status is always `SelectOptionsStatus.success`
+- Search is filtered locally in the browser
+- `loadOptions("open")` and `loadOptions("render")` do not materially change static arrays
 
-适用场景：
+## Async Loader
 
-- 状态枚举
-- 布尔扩展选项
-- 体量小且稳定的业务字典
-
-## 2. Async Loader
-
-如果只想把远程请求接进来，不想引入额外数据层，继续用 `.options(async ...)` 即可：
+If you want direct async fetching without another data layer, pass an async loader to `.options(...)`:
 
 ```tsx
 import { filtro } from "filtro";
@@ -66,24 +60,19 @@ const fields = [
 ];
 ```
 
-当前行为：
+Current behavior:
 
-- `query` 是当前搜索框输入
-- `signal` 会在请求切换或 UI 关闭时中止旧请求
-- 结果会按 `field.id + query` 做内部缓存
-- 已加载过的 option label 会被内部记住，用于已选值回填
+- `query` is the normalized query, not the raw input
+- The query is trimmed and lowercased before it reaches the loader
+- `signal` aborts previous requests when the query changes or the UI closes
+- Results are cached by `field.id + normalizedQuery`
+- Seen option labels are remembered so selected values can still render a label later
 
-适用场景：
+## `useOptions`
 
-- 你只需要远程请求，不想引入 Query / store
-- 字段自己的请求逻辑比较简单
-- 你接受由 `filtro` 管理这层 options 缓存
+If you already have your own data layer, prefer `.useOptions(...)`.
 
-## 3. `useOptions` Hook
-
-如果你已经有自己的数据层，或者需要更复杂的状态编排，推荐用 `.useOptions(...)`。
-
-这是一个“通用 options source 接口”，不是专门为 TanStack Query 定制的 API。
+This is a general option-source hook, not a TanStack Query-specific API.
 
 ```tsx
 import { filtro, SelectOptionsStatus, type UseSelectOptions } from "filtro";
@@ -133,16 +122,15 @@ const fields = [
 ];
 ```
 
-适用场景：
+This is the right choice when:
 
-- 你想接 TanStack Query / SWR
-- 你有自己的全局缓存或 store
-- 需要返回额外的 `selectedOptions`
-- 需要精确控制 `status` / `error`
+- You already use TanStack Query, SWR, or a store
+- You need custom caching or error handling
+- You want to provide `selectedOptions` explicitly
 
-## 4. `useOptions` 的输入参数
+## `useOptions` Input
 
-`useOptions` 会收到一份上下文对象：
+`useOptions` receives:
 
 ```ts
 type SelectOptionsSourceContext = {
@@ -155,26 +143,24 @@ type SelectOptionsSourceContext = {
 };
 ```
 
-各字段含义：
+Meaning:
 
-- `field`: 当前字段定义本身
-- `open`: 下拉当前是否打开
-- `query`: 搜索框原始输入
-- `normalizedQuery`: 当前内部标准化后的查询值，等于 `query.trim().toLowerCase()`
-- `selectedValues`: 当前已选的 value 列表
-- `shouldLoad`: 当前是否应该开始加载
+- `field`: the current field definition
+- `open`: whether the popup is open
+- `query`: the raw deferred search string, or `""` when search is disabled
+- `normalizedQuery`: `query.trim().toLowerCase()`
+- `selectedValues`: the currently selected values
+- `shouldLoad`: whether the field should actively load options right now
 
-`shouldLoad` 的规则：
+`shouldLoad` rules:
 
-- `loadOptions("render")` 时，一进入页面就是 `true`
-- `loadOptions("open")` 时，只有打开下拉后才会变成 `true`
-- 如果没显式设置 `loadOptions(...)`，当前默认行为等同于 `"open"`
+- `loadOptions("render")` -> load immediately
+- `loadOptions("open")` -> load only after the popup opens
+- No explicit `loadOptions(...)` -> behaves like `"open"`
 
-对自定义 source 来说，最重要的是优先根据 `shouldLoad` 决定是否真正发请求。
+## `useOptions` Return Value
 
-## 5. `useOptions` 的返回值
-
-`useOptions` 需要返回：
+`useOptions` must return:
 
 ```ts
 type SelectOptionsSourceResult = {
@@ -185,24 +171,17 @@ type SelectOptionsSourceResult = {
 };
 ```
 
-各字段含义：
+Why `selectedOptions` matters:
 
-- `options`: 当前 query 下应该显示的 options
-- `status`: 当前加载状态
-- `error`: 加载失败时的错误对象
-- `selectedOptions`: 可选，用于补回当前 query 不在结果集里的已选项 label
+- Remote search results may not include the already selected values
+- The UI still needs the correct labels for those values
+- If you can resolve them from your cache or store, return them explicitly
 
-`selectedOptions` 很有用，尤其是远程搜索场景：
+If you do not return `selectedOptions`, `filtro` falls back to its internal known-option cache.
 
-- 当前 query 可能只返回一小段结果
-- 但用户已经选中的值仍然需要显示正确 label
-- 如果你能从外部缓存或 store 里拿到已选项，建议显式返回它们
+## `SelectOptionsStatus`
 
-如果不返回 `selectedOptions`，`filtro` 仍然会回退到内部已见过的 option 缓存。
-
-## 6. `SelectOptionsStatus`
-
-`options` 状态现在导出为 `as const` 常量：
+Use the exported constant instead of hand-written strings:
 
 ```ts
 import { SelectOptionsStatus } from "filtro";
@@ -213,22 +192,20 @@ SelectOptionsStatus.success;
 SelectOptionsStatus.error;
 ```
 
-建议统一使用这个常量，而不是手写 `"loading"` 这种裸字符串。
+## `.options()` vs `.useOptions()`
 
-## 7. `options()` 和 `useOptions()` 的关系
+One field should have one option source.
 
-同一个字段只应该有一个 options 数据源。
+Builder behavior:
 
-当前 builder 的行为是：
+- Calling `.options(...)` clears any previous `.useOptions(...)`
+- Calling `.useOptions(...)` clears any previous `.options(...)`
 
-- 调用 `.options(...)` 时，会清掉之前设置的 `.useOptions(...)`
-- 调用 `.useOptions(...)` 时，会清掉之前设置的 `.options(...)`
+The last declaration wins.
 
-也就是说，最后一次声明的来源生效。
+## `loadOptions(...)`
 
-## 8. `loadOptions(...)`
-
-`loadOptions` 用来控制什么时候允许开始加载。
+`loadOptions` decides when loading is allowed to start.
 
 ```tsx
 filtro.select("owner")
@@ -236,20 +213,20 @@ filtro.select("owner")
   .loadOptions("open");
 ```
 
-可选值：
+Allowed values:
 
-- `"open"`: 打开下拉后才开始加载
-- `"render"`: 组件一渲染就可以加载
+- `"open"`: wait until the popup opens
+- `"render"`: allow loading immediately on render
 
-使用建议：
+Guidelines:
 
-- 远程搜索型接口：优先 `"open"`
-- 首屏必须立即可用的小型远程字典：可以 `"render"`
-- 静态数组：可设可不设，通常没必要
+- Remote search endpoints: usually `"open"`
+- Small remote dictionaries that should be warm immediately: `"render"`
+- Static arrays: usually no need to set it
 
-## 9. `searchable(...)`
+## `searchable(...)`
 
-`searchable()` 用来控制是否显示搜索框。
+`searchable()` toggles the search box:
 
 ```tsx
 filtro.select("status")
@@ -260,25 +237,18 @@ filtro.select("status")
   .searchable(false);
 ```
 
-当前默认值是 `true`。
+Default: `true`.
 
-影响：
+When `false`:
 
-- `false` 时不渲染搜索框
-- 静态数组不会做 query 过滤
-- async loader / `useOptions` 收到的 `query` 会始终是空字符串
+- The search input is hidden
+- Static arrays are no longer filtered by a query
+- Async loaders receive `query === ""`
+- `useOptions` receives `query === ""` and `normalizedQuery === ""`
 
-## 10. TanStack Query 最佳接法
+## TanStack Query Pattern
 
-TanStack Query 的最佳使用方式是放进 `useOptions`，而不是塞进 `.options(async ...)`。
-
-原因：
-
-- `useQuery` 必须运行在合法的 hook 边界
-- `useOptions` 本身就是为外部数据层准备的 hook 接口
-- `status` / `error` / `options` 都可以直接由 Query 派生
-
-示例：
+TanStack Query belongs in `useOptions`, not inside `.options(async ...)`, because hooks must stay in valid hook boundaries.
 
 ```tsx
 import {
@@ -286,10 +256,7 @@ import {
   filtro,
   type UseSelectOptions,
 } from "filtro";
-import {
-  keepPreviousData,
-  useQuery,
-} from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 const useOwnerOptions: UseSelectOptions<"owner", "select"> = ({
@@ -333,28 +300,10 @@ const useOwnerOptions: UseSelectOptions<"owner", "select"> = ({
     error: ownersQuery.error ?? null,
   };
 };
-
-const fields = [
-  filtro.select("owner")
-    .label("Owner")
-    .useOptions(useOwnerOptions)
-    .loadOptions("open"),
-];
 ```
 
-实践建议：
+## Which Source To Pick
 
-- `queryKey` 带上 `field.id + normalizedQuery`
-- 用 `enabled: shouldLoad`
-- 用 Query 自己的 `signal`
-- 用 `placeholderData: keepPreviousData` 减少搜索切换时的闪空
-- 如果当前结果集不一定包含已选值，显式返回 `selectedOptions`
-
-## 11. 什么时候选哪一种
-
-- 固定字典：用静态 `.options([...])`
-- 轻量远程请求：用 `.options(async ({ query, signal }) => ...)`
-- 需要接 Query / store / 自定义缓存：用 `.useOptions(...)`
-
-如果你已经有成熟的数据层，优先 `useOptions`。  
-如果你只是想快速把一个接口接进来，async loader 足够简单。
+- Fixed dictionaries: static `.options([...])`
+- Simple remote fetches: `.options(async ({ query, signal }) => ...)`
+- Query libraries, stores, or custom caches: `.useOptions(...)`

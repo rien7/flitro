@@ -1,28 +1,28 @@
 # AGENTS.md
 
-## 项目概览
+## Project Overview
 
-`filtro` 是一个基于 React 的筛选 UI 组件库，不是完整业务应用。
+`filtro` is a React filter UI component library, not a full product application.
 
-当前仓库聚焦的是一套可复用的扁平 `FilterBar`，而不是未来规划里的嵌套 filter builder。
+This repository currently focuses on a reusable flat `FilterBar`, not the future nested filter-builder direction that may appear in planning notes.
 
-它现在提供：
+What exists today:
 
-- typed logical layer：字段种类、操作符、AST 类型
-- builder API：声明 UI 字段
-- `FilterBar` 组件体系：添加、编辑、清空条件
-- optional default theme preset：默认样式和 styled primitive
-- `nuqs` URL 同步
-- Vite playground
+- A typed logical layer for field kinds, operators, and AST types
+- A builder API for declaring UI fields
+- A flat `FilterBar` component system for adding, editing, and clearing conditions
+- An optional default visual preset
+- Optional `nuqs` URL synchronization helpers
+- A Vite playground
 
-需要特别区分：
+Keep these boundaries clear:
 
-- [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical) 是纯逻辑层
-- [`src/filter-bar`](https://github.com/rien7/filtro/tree/main/src/filter-bar) 是当前真实的扁平 FilterBar 实现
-- [`src/presets/default-theme`](https://github.com/rien7/filtro/tree/main/src/presets/default-theme) 是可选默认样式层
-- `docs/filter-ui-plan.md` 如果后续出现，属于未来规划，不代表当前实现已经具备
+- [src/logical](https://github.com/rien7/filtro/tree/main/src/logical) is the pure logical layer
+- [src/filter-bar](https://github.com/rien7/filtro/tree/main/src/filter-bar) is the real flat `FilterBar` implementation
+- [src/presets/default-theme](https://github.com/rien7/filtro/tree/main/src/presets/default-theme) is the optional styling preset
+- `docs/filter-ui-plan.md`, if it appears later, should be treated as planning rather than current implementation
 
-## 技术栈
+## Tech Stack
 
 - React 19
 - TypeScript 5
@@ -32,38 +32,38 @@
 - `tsdown`
 - `pnpm`
 
-## 常用命令
+## Common Commands
 
-- 安装依赖：`pnpm install`
-- 类型检查：`pnpm run typecheck`
-- 测试：`pnpm test`
-- 构建库产物：`pnpm run build`
-- 仅构建默认主题 CSS：`pnpm run build:css`
-- 启动 playground：`pnpm run dev:ui`
-- 构建 playground：`pnpm run build:ui`
-- 预览 playground：`pnpm run preview:ui`
+- Install dependencies: `pnpm install`
+- Type-check: `pnpm run typecheck`
+- Test: `pnpm test`
+- Build the library: `pnpm run build`
+- Build only the default theme CSS: `pnpm run build:css`
+- Start the playground: `pnpm run dev:ui`
+- Build the playground: `pnpm run build:ui`
+- Preview the playground: `pnpm run preview:ui`
 
-## 当前目录结构
+## Current Directory Structure
 
-- [`src/index.ts`](https://github.com/rien7/filtro/blob/main/src/index.ts): 根入口，导出 `logical` 和 `filter-bar`
-- [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical): 领域层，定义字段种类、操作符和值类型、AST
-- [`src/filter-bar/builder.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts): `filtro.string/number/select/...` builder API
-- [`src/filter-bar/types.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/types.ts): UI 字段类型、选项加载类型、自定义 render 类型
-- [`src/filter-bar`](https://github.com/rien7/filtro/tree/main/src/filter-bar): `FilterBar.Root/Trigger/Items/Clear/SaveView/Views` 及其状态逻辑
-- [`src/filter-bar/internal/primitives/baseui`](https://github.com/rien7/filtro/tree/main/src/filter-bar/internal/primitives/baseui): 当前 `FilterBar` 实现依赖的内部 Base UI 包装件
-- [`src/presets/default-theme/index.tsx`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx): `defaultFilterBarTheme` 和默认 preset 导出
-- [`src/presets/default-theme/style-entry.ts`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/style-entry.ts): 默认主题 CSS 预编译入口
-- [`src/presets/default-theme/styles.css`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css): 默认主题样式源文件
-- [`scripts/build-default-theme-css.mjs`](https://github.com/rien7/filtro/blob/main/scripts/build-default-theme-css.mjs): 产出 `dist/default-theme.css` 的构建脚本
-- [`src/nuqs/index.ts`](https://github.com/rien7/filtro/blob/main/src/nuqs/index.ts): URL 同步
-- [`playground`](https://github.com/rien7/filtro/tree/main/playground): 本地调试页面
-- [`playground/internal/calendar.tsx`](https://github.com/rien7/filtro/blob/main/playground/internal/calendar.tsx): playground 专用日历包装件
+- [src/index.ts](https://github.com/rien7/filtro/blob/main/src/index.ts): root entrypoint, re-exports `logical` and `filter-bar`
+- [src/logical](https://github.com/rien7/filtro/tree/main/src/logical): domain layer for field kinds, operators, values, and AST types
+- [src/filter-bar/builder.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts): `filtro.string/number/select/...` builder API
+- [src/filter-bar/types.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/types.ts): UI field types, option-loading types, and custom render types
+- [src/filter-bar](https://github.com/rien7/filtro/tree/main/src/filter-bar): `FilterBar.Root`, `Trigger`, `Content`, `PinnedItems`, `SuggestedItems`, `ActiveItems`, `Clear`, `SaveView`, and `Views`
+- [src/filter-bar/internal/primitives/baseui](https://github.com/rien7/filtro/tree/main/src/filter-bar/internal/primitives/baseui): internal Base UI wrappers used by the current implementation
+- [src/presets/default-theme/index.tsx](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx): `defaultFilterBarTheme` and preset exports
+- [src/presets/default-theme/style-entry.ts](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/style-entry.ts): CSS build entry for the default theme
+- [src/presets/default-theme/styles.css](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css): default theme source styles
+- [scripts/build-default-theme-css.mjs](https://github.com/rien7/filtro/blob/main/scripts/build-default-theme-css.mjs): emits `dist/default-theme.css`
+- [src/nuqs/index.ts](https://github.com/rien7/filtro/blob/main/src/nuqs/index.ts): URL sync helpers
+- [playground](https://github.com/rien7/filtro/tree/main/playground): local playground
+- [playground/internal/calendar.tsx](https://github.com/rien7/filtro/blob/main/playground/internal/calendar.tsx): playground-only calendar wrapper
 
-## 当前实现的核心模型
+## Core Model
 
-### 1. 逻辑层
+### 1. Logical Layer
 
-[`src/logical/field.ts`](https://github.com/rien7/filtro/blob/main/src/logical/field.ts) 定义字段种类：
+[src/logical/field.ts](https://github.com/rien7/filtro/blob/main/src/logical/field.ts) defines the current field kinds:
 
 - `string`
 - `number`
@@ -72,104 +72,152 @@
 - `multiSelect`
 - `boolean`
 
-[`src/logical/operator.ts`](https://github.com/rien7/filtro/blob/main/src/logical/operator.ts) 为每种字段定义允许的 operator 和对应 value 类型。
+[src/logical/operator.ts](https://github.com/rien7/filtro/blob/main/src/logical/operator.ts) defines the allowed operators and typed value shapes for each field kind.
 
-[`src/logical/ast.ts`](https://github.com/rien7/filtro/blob/main/src/logical/ast.ts) 定义 `FilterCondition`、`FilterGroup`、`FilterRoot` 等 AST 类型，但当前 `FilterBar` UI 不编辑嵌套 AST。
+[src/logical/ast.ts](https://github.com/rien7/filtro/blob/main/src/logical/ast.ts) defines `FilterCondition`, `FilterGroup`, `FilterRoot`, and related AST types, but the current UI does not edit nested groups.
 
-### 2. 字段声明方式
+### 2. Field Declaration
 
-通过 [`src/filter-bar/builder.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts) 导出的单例 `filtro` 构建字段：
+Fields are declared through the singleton exported from [src/filter-bar/builder.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts):
 
 ```ts
-filtro.string("keyword").label("Keyword")
+filtro.string("keyword").label("Keyword");
 filtro.select("status").options([
   { label: "Open", value: "open" },
   { label: "Closed", value: "closed" },
-])
-filtro.group("Basic", [/* fields */])
+]);
+filtro.group("Basic", [/* fields */]);
 ```
 
-关键事实：
+Important implementation details:
 
-- builder 内部用 `WeakMap` 关联 builder 实例和最终 `UIField`
-- `allowedOperators` 默认来自 `operatorsForKind`
-- `select` / `multiSelect` 支持静态 options 和异步 loader
-- `boolean` 依赖显式 options
-- 字段可以注入自定义 `render`
+- Builder instances are associated with final `UIField` objects through a `WeakMap`
+- `allowedOperators` default to `operatorsForKind`
+- `select` and `multiSelect` support static arrays and async loaders
+- `boolean` requires explicit options
+- Fields can inject a custom value editor through `.render(...)`
 
-### 3. UI 结构
+### 3. UI Structure
 
-当前公开组件主要来自 [`src/filter-bar/index.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/index.ts)：
+Current public components come from [src/filter-bar/index.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/index.ts):
 
 - `FilterBar.Root`
 - `FilterBar.Trigger`
-- `FilterBar.Items`
+- `FilterBar.Content`
+- `FilterBar.PinnedItems`
+- `FilterBar.SuggestedItems`
+- `FilterBar.ActiveItems`
 - `FilterBar.Clear`
 - `FilterBar.SaveView`
 - `FilterBar.Views`
 
-运行机制：
+High-level flow:
 
-- `Root` 接收字段定义，展开成 `uiFieldEntries` 与 `uiFields`
-- `Trigger` 负责添加筛选项，并避免重复添加同一字段
-- `Items` 渲染当前激活的条件行
-- 每一行由 [`src/filter-bar/items.row.tsx`](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.row.tsx) 负责 field/operator/value/remove
-- 值编辑器按字段种类分发到 [`src/filter-bar/items-editors`](https://github.com/rien7/filtro/tree/main/src/filter-bar/items-editors)
+- `Root` resolves the field definitions into `uiFieldEntries` and `uiFields`
+- `Trigger` adds new rows and prevents duplicate fields in normal mode
+- `PinnedItems`, `SuggestedItems`, and `ActiveItems` render the current display regions
+- Each active or pinned row is rendered by [src/filter-bar/items.row.tsx](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.row.tsx)
+- Value editors are dispatched from [src/filter-bar/items.value-editor.tsx](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.value-editor.tsx) into [src/filter-bar/items-editors](https://github.com/rien7/filtro/tree/main/src/filter-bar/items-editors)
 
-### 4. 状态管理
+### 4. State Model
 
-[`src/filter-bar/context.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/context.ts) 中的 `values` 是当前唯一状态源。
+The only external active state is still `FilterBarValue[]`, defined around [src/filter-bar/context.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/context.ts).
 
-注意当前状态形态：
+Current characteristics:
 
-- 是 `FilterBarValue[]`
-- 每个字段最多出现一次
-- 不支持同字段重复条件
-- 不支持 AND/OR 分组
-- 不直接输出 `FilterRoot`
+- Each field can appear at most once
+- Duplicate field conditions are not supported
+- Nested `AND` / `OR` groups are not supported
+- `FilterBar` does not emit `FilterRoot`
+- Incomplete row drafts can exist internally, but they are not part of the external `FilterBarValue[]`
 
-如果需求变成复杂过滤器、分组、AST 输出，不要继续在当前 `FilterBarValue[]` 上硬扩展。
+If the product requirement becomes a true builder with repeated conditions, groups, or AST output, do not keep stretching this flat state model.
 
-## 主题和样式边界
+## Theme and Styling Boundaries
 
-- `filtro` 根入口不导出默认样式 preset
-- `defaultFilterBarTheme` 和 styled primitives 从 [`src/presets/default-theme/index.tsx`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx) 暴露
-- [`src/filter-bar/theme.tsx`](https://github.com/rien7/filtro/blob/main/src/filter-bar/theme.tsx) 只负责 theme slot contract、merge 和 provider
-- [`src/presets/default-theme/styles.css`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css) 是默认主题样式源文件
+- The root `filtro` entry does not export the default preset
+- `defaultFilterBarTheme` and the styled wrappers live in [src/presets/default-theme/index.tsx](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx)
+- [src/filter-bar/theme.tsx](https://github.com/rien7/filtro/blob/main/src/filter-bar/theme.tsx) only defines the theme contract, merge logic, and provider
+- [src/presets/default-theme/styles.css](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css) is the source stylesheet for the preset
 
-仓库内默认样式源文件依赖 Tailwind CSS v4，但包构建会产出预编译的 `default-theme.css`。
+The preset source styles use Tailwind CSS v4, but package builds emit precompiled CSS for consumers.
 
-## 修改建议
+## Recommended Modification Areas
 
-### 适合直接修改的区域
+### Good places to edit directly
 
-- 新增字段种类相关 UI：优先看 [`src/filter-bar/items.value-editor.tsx`](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.value-editor.tsx)、[`src/filter-bar/items-editors`](https://github.com/rien7/filtro/tree/main/src/filter-bar/items-editors)、[`src/filter-bar/types.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/types.ts)
-- 新增或调整操作符：同步修改 [`src/logical/operator.ts`](https://github.com/rien7/filtro/blob/main/src/logical/operator.ts) 与 [`src/filter-bar/items.constants.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.constants.ts)
-- 调整字段声明 API：修改 [`src/filter-bar/builder.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts)
-- 调整交互或布局：修改 [`src/filter-bar`](https://github.com/rien7/filtro/tree/main/src/filter-bar)
-- 调整默认视觉：修改 [`src/presets/default-theme/index.tsx`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx) 和 [`src/presets/default-theme/styles.css`](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css)
-- 调整 playground 专用日期 UI：修改 [`playground/calendar-date-editor.tsx`](https://github.com/rien7/filtro/blob/main/playground/calendar-date-editor.tsx) 和 [`playground/internal/calendar.tsx`](https://github.com/rien7/filtro/blob/main/playground/internal/calendar.tsx)
+- New field-kind UI: start from [src/filter-bar/items.value-editor.tsx](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.value-editor.tsx), [src/filter-bar/items-editors](https://github.com/rien7/filtro/tree/main/src/filter-bar/items-editors), and [src/filter-bar/types.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/types.ts)
+- Operator changes: update both [src/logical/operator.ts](https://github.com/rien7/filtro/blob/main/src/logical/operator.ts) and [src/filter-bar/items.constants.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/items.constants.ts)
+- Builder API changes: edit [src/filter-bar/builder.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/builder.ts)
+- Interaction or layout changes: edit [src/filter-bar](https://github.com/rien7/filtro/tree/main/src/filter-bar)
+- Default visuals: edit [src/presets/default-theme/index.tsx](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/index.tsx) and [src/presets/default-theme/styles.css](https://github.com/rien7/filtro/blob/main/src/presets/default-theme/styles.css)
+- Playground-specific date UI: edit [playground/calendar-date-editor.tsx](https://github.com/rien7/filtro/blob/main/playground/calendar-date-editor.tsx) and [playground/internal/calendar.tsx](https://github.com/rien7/filtro/blob/main/playground/internal/calendar.tsx)
 
-### 修改时的约束
+### Constraints while editing
 
-- 先确认改的是当前实现，不要把未来规划能力误认为已经存在
-- `logical` 层保持纯类型/领域定义，不要引入 React
-- builder 是对外 API，改签名要考虑类型推导和兼容性
-- `FilterBar.Root` 已支持 uncontrolled 和 controlled 用法，涉及状态时要同时考虑两条路径
-- `select` 异步选项逻辑已经存在，相关改动先检查 [`src/filter-bar/select-options.ts`](https://github.com/rien7/filtro/blob/main/src/filter-bar/select-options.ts)
-- `dist` 和 `dist-playground` 不是主要修改目标
+- Confirm you are working on the current implementation, not on future planning ideas
+- Keep the `logical` layer React-free
+- The builder is public API, so signature changes must preserve type inference and compatibility
+- `FilterBar.Root` supports both controlled and uncontrolled usage; any state change must consider both paths
+- Select async-option behavior already exists; check [src/filter-bar/select-options.ts](https://github.com/rien7/filtro/blob/main/src/filter-bar/select-options.ts) before changing it
+- `dist` and `dist-playground` are outputs, not primary edit targets
 
-## 当前已知状态
+## Current Known State
 
-- `README.md` 已存在，并描述了新的入口结构
-- 测试脚本当前等同于类型检查，没有独立单测
-- playground 是理解行为的最快入口，参考 [`playground/playground-app.tsx`](https://github.com/rien7/filtro/blob/main/playground/playground-app.tsx)
-- 路径别名 `@/*` 指向 `src/*`
+- `README.md` exists and describes the current entrypoints and default-theme subpath
+- The `test` script currently runs the type-checker only; there are no separate unit tests yet
+- The playground is still the fastest way to understand behavior, especially [playground/playground-app.tsx](https://github.com/rien7/filtro/blob/main/playground/playground-app.tsx)
+- The path alias `@/*` maps to `src/*`
 
-## 给后续代理的工作方式
+## Workflow For Future Agents
 
-1. 先看 [`package.json`](https://github.com/rien7/filtro/blob/main/package.json) 和 [`README.md`](https://github.com/rien7/filtro/blob/main/README.md)，确认新的对外入口和默认主题子入口。
-2. 涉及字段、操作符和值类型时，先从 [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical) 开始。
-3. 涉及 `FilterBar` 交互时，优先顺着 `Root -> Trigger -> Items -> items-editors` 这条链路阅读。
-4. 涉及默认视觉时，把它视为 preset 层问题，优先看 [`src/presets/default-theme`](https://github.com/rien7/filtro/tree/main/src/presets/default-theme)。
-5. 如果需求已经是复杂过滤器 / 分组 / AST 输出 / framework-agnostic core，把它视为新阶段能力，不要直接给当前 `FilterBar` 打补丁。
+1. Read [package.json](https://github.com/rien7/filtro/blob/main/package.json) and [README.md](https://github.com/rien7/filtro/blob/main/README.md) first to confirm the public entrypoints and package structure.
+2. For anything involving fields, operators, or value shapes, start from [src/logical](https://github.com/rien7/filtro/tree/main/src/logical).
+3. For `FilterBar` interaction changes, follow the chain `Root -> Trigger -> display regions -> items-editors`.
+4. For visual changes, treat them as preset-layer work first and start in [src/presets/default-theme](https://github.com/rien7/filtro/tree/main/src/presets/default-theme).
+5. If the requirement is now complex filtering, nested groups, AST output, or a framework-agnostic core, treat it as a new phase instead of patching the current flat `FilterBar`.
+
+## Skills
+
+A skill is a local instruction set stored in a `SKILL.md` file. The following skills are available in this repository context.
+
+### Available skills
+
+- `adapt`: Adapt designs across screen sizes, devices, or contexts. File: `~/.agents/skills/adapt/SKILL.md`
+- `animate`: Add purposeful motion and micro-interactions. File: `~/.agents/skills/animate/SKILL.md`
+- `audit`: Audit interface quality across accessibility, performance, theming, and responsive design. File: `~/.agents/skills/audit/SKILL.md`
+- `bolder`: Make safe designs more visually interesting. File: `~/.agents/skills/bolder/SKILL.md`
+- `clarify`: Improve unclear product copy and labels. File: `~/.agents/skills/clarify/SKILL.md`
+- `colorize`: Add strategic color to bland interfaces. File: `~/.agents/skills/colorize/SKILL.md`
+- `critique`: Evaluate UX and visual design quality. File: `~/.agents/skills/critique/SKILL.md`
+- `delight`: Add personality and delight. File: `~/.agents/skills/delight/SKILL.md`
+- `distill`: Simplify and remove unnecessary complexity. File: `~/.agents/skills/distill/SKILL.md`
+- `extract`: Pull reusable design tokens and patterns into the system. File: `~/.agents/skills/extract/SKILL.md`
+- `find-skills`: Discover or install additional skills. File: `~/.agents/skills/find-skills/SKILL.md`
+- `frontend-design`: Build distinctive production-grade frontend interfaces. File: `~/.agents/skills/frontend-design/SKILL.md`
+- `harden`: Improve resilience, edge cases, and robustness. File: `~/.agents/skills/harden/SKILL.md`
+- `normalize`: Align work with the existing design system. File: `~/.agents/skills/normalize/SKILL.md`
+- `onboard`: Improve onboarding, empty states, and first-run flows. File: `~/.agents/skills/onboard/SKILL.md`
+- `optimize`: Improve UI performance. File: `~/.agents/skills/optimize/SKILL.md`
+- `playwright`: Use a real browser from the terminal for UI tasks. File: `~/.codex/skills/playwright/SKILL.md`
+- `polish`: Final quality pass before shipping. File: `~/.agents/skills/polish/SKILL.md`
+- `quieter`: Tone down overly aggressive designs. File: `~/.agents/skills/quieter/SKILL.md`
+- `teach-impeccable`: One-time project design setup. File: `~/.agents/skills/teach-impeccable/SKILL.md`
+- `skill-creator`: Create or update a Codex skill. File: `~/.codex/skills/.system/skill-creator/SKILL.md`
+- `skill-installer`: Install skills from curated sources or repositories. File: `~/.codex/skills/.system/skill-installer/SKILL.md`
+
+### How to use skills
+
+- Discovery: the list above is the skills available in this session
+- Trigger rule: if a user names a skill, or the task clearly matches a skill, use it for that turn
+- Missing skill: if a named skill cannot be read, say so briefly and continue with the best fallback
+
+Practical workflow:
+
+1. After deciding to use a skill, open its `SKILL.md` and read only what is necessary.
+2. Resolve relative paths from the skill directory first.
+3. If the skill points to additional references, load only the specific files you need.
+4. Prefer existing scripts and templates when the skill provides them.
+5. Keep context small and avoid loading unnecessary references.
+
+If a skill cannot be applied cleanly, state the issue briefly, choose the next best approach, and continue.

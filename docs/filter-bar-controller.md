@@ -1,25 +1,25 @@
 # FilterBar Controller
 
-`FilterBar.Root` 仍然只是一个编辑 `FilterBarValue[]` 的 UI。
+`FilterBar.Root` still edits one thing: active `FilterBarValue[]`.
 
-如果你的页面需要区分：
+If your page needs to separate:
 
-- 正在编辑的 filters
-- 已经提交给请求层 / URL / store 的 filters
+- The filters currently being edited
+- The filters that are already applied to data fetching, URL state, or a store
 
-推荐使用 `useFilterBarController()`
+use `useFilterBarController()`.
 
-## 1. 设计边界
+## Design Boundary
 
-`controller` 不是 `Root` 的 prop，也不会进入内部 context。
+The controller is not a `FilterBar.Root` prop and it is not stored inside the filter bar context.
 
-职责分层固定为：
+The responsibility split is:
 
-- `FilterBar.Root`：编辑 `value`
-- `useFilterBarController()`：协调 `draftValue` 和 `appliedValue`
-- `filtro/nuqs`、router、store：消费 `appliedValue`
+- `FilterBar.Root`: edits active `FilterBarValue[]`
+- `useFilterBarController()`: coordinates draft and applied values
+- `filtro/nuqs`, routers, or external stores: consume applied values
 
-`Root` 继续只接：
+`FilterBar.Root` still accepts:
 
 ```ts
 value?: FilterBarValueType;
@@ -30,7 +30,9 @@ onChange?: (
 defaultValue?: FilterBarValueType;
 ```
 
-## 2. Hook API
+Important: this controller works with meaningful active values only. Incomplete row drafts inside `FilterBar` remain internal until they become valid active values or are removed.
+
+## Hook API
 
 ```ts
 import {
@@ -64,17 +66,17 @@ type FilterBarController = {
 };
 ```
 
-语义：
+Meaning:
 
-- `draftValue`: 当前 UI 正在编辑的值
-- `onDraftChange`: 传给 `FilterBar.Root` 的受控回调
-- `appliedValue`: 当前真正给业务消费的值
-- `apply()`: 显式把 draft 提升为 applied
-- `clear()`: 清空 draft，不自动提交
-- `discardChanges()`: 丢弃 draft，回到当前 applied
-- `isDirty`: `draftValue` 和 `appliedValue` 是否不同
+- `draftValue`: the current editable active values
+- `onDraftChange`: pass this to `FilterBar.Root`
+- `appliedValue`: the currently committed values
+- `apply()`: promote `draftValue` to `appliedValue`
+- `clear()`: reset the draft to `[]`
+- `discardChanges()`: reset the draft back to the current applied value
+- `isDirty`: whether `draftValue` differs from `appliedValue`
 
-## 3. 最常见用法
+## Common Usage
 
 ```tsx
 import { FilterBar, filtro, useFilterBarController } from "filtro";
@@ -110,24 +112,13 @@ export function Filters() {
       </FilterBar.Root>
 
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={filters.apply}
-          disabled={!filters.isDirty}
-        >
+        <button type="button" onClick={filters.apply} disabled={!filters.isDirty}>
           Apply
         </button>
-        <button
-          type="button"
-          onClick={filters.clear}
-        >
+        <button type="button" onClick={filters.clear}>
           Clear draft
         </button>
-        <button
-          type="button"
-          onClick={filters.discardChanges}
-          disabled={!filters.isDirty}
-        >
+        <button type="button" onClick={filters.discardChanges} disabled={!filters.isDirty}>
           Discard changes
         </button>
       </div>
@@ -136,43 +127,34 @@ export function Filters() {
 }
 ```
 
-## 4. 自动 Apply
+## Auto Apply
 
-`applyMode: "manual"` 时，controller 不自动提交。
+With `applyMode: "manual"`, the controller never auto-applies.
 
-`applyMode: "auto"` 时，controller 根据 `FilterBarChangeMeta` 自动决定：
+With `applyMode: "auto"`, the controller uses `FilterBarChangeMeta` to decide whether to apply immediately, debounce, or skip.
 
-- 立即 apply
-- debounce apply
-- 跳过这次提交
+Current built-in rules:
 
-第一版的默认规则固定为：
+- `clear` -> skip
+- `remove` -> apply
+- `add` with `completeness === "incomplete"` -> skip
+- `add` with `completeness === "complete"` -> apply
+- `operator` with `completeness === "incomplete"` -> skip
+- `operator` with `completeness === "complete"` -> apply
+- `value` with `completeness === "incomplete"` -> skip
+- `value` with `valueChangeKind === "typing"` and `completeness === "complete"` -> debounce
+- `value` with `valueChangeKind === "selected"` and `completeness === "complete"` -> apply
 
-- `clear` => skip
-- `remove` => apply
-- `add` 且 `completeness === "incomplete"` => skip
-- `add` 且 `completeness === "complete"` => apply
-- `operator` 且 `completeness === "incomplete"` => skip
-- `operator` 且 `completeness === "complete"` => apply
-- `value` 且 `completeness === "incomplete"` => skip
-- `value` 且 `valueChangeKind === "typing"` 且 `completeness === "complete"` => debounce
-- `value` 且 `valueChangeKind === "selected"` 且 `completeness === "complete"` => apply
+`debounceMs` only affects auto-applied typing changes.
 
-`debounceMs` 只在自动模式下的 typing 变更生效。
+## `FilterBarChangeMeta`
 
-## 5. `FilterBarChangeMeta`
-
-`onChange(nextValue, meta)` 的 `meta` 只描述这次编辑事实，不描述 apply 策略。
+`onChange(nextValue, meta)` reports what changed. It does not encode apply policy.
 
 ```ts
 type FilterBarChangeMeta<FieldId extends string = string> =
-  | {
-      action: "clear";
-    }
-  | {
-      action: "remove";
-      fieldId: FieldId;
-    }
+  | { action: "clear" }
+  | { action: "remove"; fieldId: FieldId }
   | {
       action: "add";
       fieldId: FieldId;
@@ -191,19 +173,19 @@ type FilterBarChangeMeta<FieldId extends string = string> =
     };
 ```
 
-这意味着：
+Examples:
 
-- `FilterBar.Clear` 会发出 `{ action: "clear" }`
-- 删除条件会发出 `{ action: "remove", fieldId }`
-- 文本类 editor 会发出 `valueChangeKind: "typing"`
-- 选择类 editor 会发出 `valueChangeKind: "selected"`
+- `FilterBar.Clear` emits `{ action: "clear" }`
+- Removing a row emits `{ action: "remove", fieldId }`
+- Built-in text and number typing emits `valueChangeKind: "typing"`
+- Built-in select, boolean, and discrete date selection emits `valueChangeKind: "selected"`
 
-## 6. 与 `filtro/nuqs` 组合
+## Pairing With `filtro/nuqs`
 
-组合方式固定为：
+Use the controller between the filter bar and the URL layer:
 
-- `Root` 消费 controller 的 draft 通道
-- `nuqs` 消费 controller 的 applied 通道
+- `FilterBar.Root` edits the draft channel
+- `filtro/nuqs` owns the applied channel
 
 ```tsx
 import { FilterBar, filtro, useFilterBarController } from "filtro";
@@ -247,29 +229,21 @@ export function UrlBackedFilters() {
 }
 ```
 
-这条接法下：
+## Synchronization Rules
 
-- URL 持有 applied filters
-- controller 持有 draft filters
-- `apply()` 时才把 draft 写回 URL
+Current behavior:
 
-第一版推荐 `history: "replace"`。
+- External `appliedValue` is authoritative
+- When external `appliedValue` changes, the controller resets `draftValue` to match it
+- After that sync, `isDirty` becomes `false`
+- `defaultValue` is only used during initialization
+- `appliedValue` wins over `defaultValue` during initialization
 
-## 7. 同步规则
+## Current Non-Goals
 
-controller 的同步规则固定为：
+Not supported in this version:
 
-- 外部 `appliedValue` 是 authoritative state
-- 外部 `appliedValue` 变化时，controller 直接把 `draftValue` 同步成新的 `appliedValue`
-- 外部 `appliedValue` 变化后，`isDirty` 变成 `false`
-- `defaultValue` 只参与初始化
-- 初始化优先级是 `appliedValue` 高于 `defaultValue`
-
-## 8. 当前不做的事
-
-第一版不支持：
-
-- 外部受控 `draftValue / onDraftChange`
-- `controller={...}` 直接传给 `FilterBar.Root`
-- 自定义自动 apply 策略函数
-- 把 controller 放进 `FilterBar` 内部 context
+- Externally controlled incomplete row drafts
+- `controller={...}` passed directly into `FilterBar.Root`
+- Custom auto-apply decision functions
+- Storing the controller inside `FilterBar` context

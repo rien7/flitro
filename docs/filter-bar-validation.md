@@ -1,20 +1,27 @@
 # FilterBar Validation
 
-`FilterBar` 当前公开的字段校验入口只有两个：
+`FilterBar` exposes two validation hooks on field builders:
 
 - `.validate(fn)`
 - `.zod(schemaOrFactory)`
 
-它们都挂在 `filtro.string(...)`、`filtro.number(...)`、`filtro.date(...)`、`filtro.select(...)`、`filtro.multiSelect(...)`、`filtro.boolean(...)` 这些 builder 上。
+They are available on all current field builders:
 
-这篇文档只讲“怎么用”：
+- `filtro.string(...)`
+- `filtro.number(...)`
+- `filtro.date(...)`
+- `filtro.select(...)`
+- `filtro.multiSelect(...)`
+- `filtro.boolean(...)`
 
-- 什么时候用 `.validate(...)`
-- 什么时候用 `.zod(...)`
-- `number` / `date` 默认 editor 内部怎么处理 parse
-- 自定义 `render` 时，parse 应该怎么自己接管
+This doc focuses on:
 
-## 1. 最短用法
+- When to use `.validate(...)`
+- When to use `.zod(...)`
+- How built-in editors handle parsing
+- What custom `.render(...)` editors must do themselves
+
+## Basic Usage
 
 ```tsx
 import { filtro } from "filtro";
@@ -43,29 +50,29 @@ const fields = [
 ];
 ```
 
-约定很简单：
+Validation contract:
 
-- 返回 `null` / `undefined` 表示通过
-- 返回字符串表示失败，这个字符串会作为错误文案显示
+- Return `null` or `undefined` for success
+- Return a string for failure
 
-默认 `string` / `number` / `date` editor 会把错误显示在整条 filter item 的底部。
+Built-in string, number, and date editors render the error below the row.
 
-## 2. `.validate(fn)` 的用法
+## `.validate(fn)`
 
-`.validate(...)` 适合写业务规则。
+Use `.validate(...)` for business rules.
 
-签名可以理解成：
+Signature:
 
 ```ts
 validate(({ op, value }) => string | null | undefined)
 ```
 
-参数含义：
+Parameters:
 
-- `op`: 当前字段正在使用的 operator
-- `value`: 当前 operator 对应的已提交值，可能是 `null`
+- `op`: the current operator
+- `value`: the committed value shape for that operator, or `null`
 
-### `string` 示例
+Examples:
 
 ```tsx
 filtro.string("title")
@@ -75,8 +82,6 @@ filtro.string("title")
     return value.trim().length >= 5 ? null : "Use at least 5 characters";
   });
 ```
-
-### `number` 示例
 
 ```tsx
 filtro.number("price")
@@ -91,8 +96,6 @@ filtro.number("price")
     return value >= 0 ? null : "Price must be non-negative";
   });
 ```
-
-### `date` 示例
 
 ```tsx
 filtro.date("createdAt")
@@ -112,25 +115,17 @@ filtro.date("createdAt")
   });
 ```
 
-### 多个 `.validate(...)`
+Current typed API note:
 
-可以连续调用多次。它们会按声明顺序执行，遇到第一条错误就停止。
+- A builder only exposes `.validate()` once
+- A builder only exposes `.zod()` once
+- If you need multiple rules, compose them inside one function or combine one `.validate()` with one `.zod()`
 
-```tsx
-filtro.string("slug")
-  .validate(({ value }) => {
-    if (!value) return null;
-    return value.length <= 20 ? null : "Use 20 characters or fewer";
-  })
-  .validate(({ value }) => {
-    if (!value) return null;
-    return /^[a-z0-9-]+$/.test(value) ? null : "Use lowercase letters, numbers, and dashes only";
-  });
-```
+Validators still run in declaration order, and the first error wins.
 
-## 3. `.zod(...)` 的用法
+## `.zod(...)`
 
-如果你的业务已经在用 `zod`，通常直接用 `.zod(...)` 更省事。
+If your app already uses `zod`, `.zod(...)` is often the easiest path.
 
 ```tsx
 import { filtro } from "filtro";
@@ -143,18 +138,16 @@ const fields = [
 ];
 ```
 
-`filtro` 不会把 `zod` 作为硬依赖引进来。这里实际要求的是一个 `safeParse()` 兼容对象。
+`filtro` does not depend on `zod` directly. It only expects a `safeParse()`-compatible schema object.
 
-默认行为：
+Current behavior:
 
-- `value === null` 时，`.zod(...)` 不报错
-- `safeParse()` 成功时通过
-- `safeParse()` 失败时，优先取第一条 issue message
-- 如果没有可用 message，回退到 `"Invalid value"`
+- `value === null` passes without error
+- `safeParse()` success passes
+- On failure, the first issue message wins
+- If no usable message exists, the fallback is `"Invalid value"`
 
-### 固定 operator 的 `zod`
-
-如果字段只允许一种值形状，`.zod(...)` 最直接。
+For fields with one fixed value shape:
 
 ```tsx
 filtro.number("amount")
@@ -162,9 +155,7 @@ filtro.number("amount")
   .zod(z.number().min(0));
 ```
 
-### 多 operator 的 `zod`
-
-如果字段会在不同 operator 之间切换，应该传 schema factory：
+For fields whose value shape changes with the operator:
 
 ```tsx
 filtro.number("amount").zod(({ op }) => {
@@ -178,8 +169,6 @@ filtro.number("amount").zod(({ op }) => {
   return z.number().min(0);
 });
 ```
-
-`date` 字段也一样：
 
 ```tsx
 filtro.date("createdAt").zod(({ op }) => {
@@ -198,75 +187,59 @@ filtro.date("createdAt").zod(({ op }) => {
 });
 ```
 
-## 4. `parse` 现在怎么用
+## No Public `.parse(...)`
 
-当前版本没有公开的 `.parse(...)` builder API。
+There is currently no public `.parse(...)` builder API.
 
-也就是说，这样的写法现在并不存在：
+This does not exist:
 
 ```tsx
-// 目前不支持
+// Not supported
 filtro.number("amount").parse(...)
 ```
 
-现在的设计是：
+Current design:
 
-- 对外暴露的只有 `.validate(...)` 和 `.zod(...)`
-- `number` / `date` 默认 editor 内部自己处理 raw input 和 parse
-- 最终写进 `FilterBarValue[]` 的仍然只有合法值或 `null`
+- Public field-level validation is `.validate(...)` and `.zod(...)`
+- Built-in number and date editors handle raw input and parsing internally
+- Only valid values or `null` enter `FilterBarValue[]`
 
-所以“parse 的使用方式”目前分两类看：
+## Built-in Editor Parsing
 
-1. 默认 editor
-`FilterBar` 已经内置处理好了，你不需要额外写 parse。
+Built-in editors parse before writing values.
 
-2. 自定义 `render`
-如果你接管了 value editor，那 raw input 和 parse 也要一起自己处理。
+`string`:
 
-## 5. 默认 editor 内部的 parse 行为
+- Input stays a string
+- Validation runs against the committed string or `null`
 
-这部分是库内部行为，但理解它有助于你正确选择 API。
+`number`:
 
-### `string`
+- `""` becomes `null`
+- Valid numeric text becomes a number
+- Invalid intermediate states such as `"-"` stay local to the input
+- Invalid intermediate states do not enter `FilterBarValue[]`
 
-`string` 默认 editor 基本不需要格式转换：
+`date`:
 
-- 输入框 raw string
-- 直接作为 string value 提交
-- 再跑 `.validate(...)` / `.zod(...)`
+- `""` becomes `null`
+- Valid date strings are committed
+- Invalid date input stays local to the editor
+- `between` / `notBetween` require both ends
+- `lastNDays` / `nextNDays` require numbers
 
-### `number`
+That is why validators receive committed values instead of raw strings.
 
-`number` 默认 editor 会先处理 raw string，再决定要不要提交：
+## Custom `.render(...)` Editors
 
-- `""` 提交为 `null`
-- `"12"` 提交为 `12`
-- `"-"`、`"1e-"` 这类非法中间态不会写进最终值
-- 非法中间态会保留在输入框里，并显示错误
+If you replace the value editor with `.render(...)`, you are responsible for:
 
-### `date`
+- Raw input state
+- Parsing
+- Invalid intermediate values
+- When `onChange()` should be called
 
-`date` 默认 editor 同样会先 parse：
-
-- `""` 提交为 `null`
-- 合法日期字符串才会提交
-- 非法日期输入不会写进最终值
-- `between/notBetween` 会要求两端都完整
-- `lastNDays/nextNDays` 会要求正整数
-
-这也是为什么 `validate` 拿到的是“已提交值”，而不是原始输入字符串。
-
-## 6. 自定义 `render` 时怎么处理 parse
-
-如果你用了 `.render(...)`，库只会继续给你：
-
-- `value`
-- `onChange`
-- `validate`
-
-raw input、touched、parse 时机，仍然由你自己决定。
-
-一个最小示例：
+Example:
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -318,38 +291,18 @@ filtro.number("amount").render(({ value, onChange, validate }) => {
 });
 ```
 
-这里要点只有两个：
+Rules:
 
-- parse 失败时，不要调用 `onChange(illegalValue)`
-- 想保留非法输入，就必须自己维护本地 draft
+- Do not call `onChange()` with an illegal value shape
+- If you want to preserve invalid input, keep local draft state yourself
+- Pass `valueChangeKind: "typing"` for continuous typing
+- Pass `valueChangeKind: "selected"` for discrete actions
 
-如果你的自定义 `render` 是连续输入控件，记得给 `onChange` 传：
+## Current Scope
 
-```ts
-{ valueChangeKind: "typing" }
-```
+This validation model still serves the current flat `FilterBar`:
 
-如果是日期选择、下拉选择、按钮切换这类离散操作，则传：
-
-```ts
-{ valueChangeKind: "selected" }
-```
-
-## 7. 什么时候用哪一种
-
-- 只想加业务规则：用 `.validate(...)`
-- 已经在业务里统一用 `zod`：用 `.zod(...)`
-- 字段允许多个 operator，值形状会变：优先 `.validate(...)` 或 `.zod(({ op }) => ...)`
-- 只用默认 editor：不需要关心 parse，库已经处理
-- 用自定义 `render`：你要自己接管 parse 和 raw input
-
-## 8. 当前边界
-
-这套能力仍然服务于当前“扁平 FilterBar”实现，不代表已经进入未来规划里的复杂 builder 模型。
-
-它目前不会改变这些事实：
-
-- `logical` 层仍然保持纯类型定义
-- `FilterBarValue[]` 仍然是最终对外状态
-- 非法 raw input 不会进入 URL sync 或 saved views
-- 当前没有公开的 `.parse(...)` builder API
+- `logical` stays pure type and domain code
+- `FilterBarValue[]` remains the external state model
+- Invalid raw input never enters URL sync or saved views
+- There is still no public `.parse(...)` builder API

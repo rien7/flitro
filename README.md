@@ -2,33 +2,27 @@
 
 `filtro` is a React filter bar library for building flat, reusable filtering UIs.
 
-This repository is a component library, not a full application.
-
-Today it is organized around five runtime layers:
-
-- `logical`: pure typed field kinds, operators, and AST types
-- `filter-bar`: the current flat `FilterBar` component system
-- `filter-bar/internal/primitives/baseui`: internal Base UI wrappers used by the current `FilterBar` implementation
-- `default-theme`: the optional default visual preset and precompiled stylesheet
-- `nuqs`: optional URL synchronization helpers
-
 ## Status
 
-The current UI is a flat filter bar.
+This repository is a work in progress.
+
+The current package is usable, but the public surface is still settling and the scope is intentionally narrow. The implemented UI is a flat `FilterBar`, not a nested filter builder.
+
+Current constraints:
 
 - One active condition per field
 - No repeated conditions for the same field
-- No nested AND/OR groups in the UI
+- No nested `AND` / `OR` groups in the UI
 - No visual AST editor
 
 The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, and `FilterRoot`, but the current `FilterBar` does not edit nested groups.
 
 ## Package Entrypoints
 
-- `filtro`: logical types, builder API, `FilterBar`, and the theme slot contract
-- `filtro/default-theme`: `defaultFilterBarTheme` and preset-owned styled wrappers such as `Button`
-- `filtro/nuqs`: optional URL query synchronization helpers
-- `filtro/default-theme.css`: precompiled default theme stylesheet
+- `filtro`: logical types, the field builder API, `FilterBar`, and theme helpers
+- `filtro/default-theme`: the optional default preset and preset-owned styled wrappers such as `Button`
+- `filtro/default-theme.css`: the precompiled stylesheet for the default preset
+- `filtro/nuqs`: optional URL synchronization helpers
 
 ## Installation
 
@@ -42,7 +36,7 @@ Optional:
 
 ## Quick Start
 
-### Base FilterBar
+### Base `FilterBar`
 
 ```tsx
 import { FilterBar, filtro } from "filtro";
@@ -60,7 +54,7 @@ const fields = [
   ]),
 ];
 
-export function BaseExample() {
+export function Example() {
   return (
     <FilterBar.Root fields={fields}>
       <div className="toolbar">
@@ -77,7 +71,7 @@ export function BaseExample() {
 }
 ```
 
-### Default Theme Preset
+### Optional Default Preset
 
 ```tsx
 import "filtro/default-theme.css";
@@ -123,7 +117,11 @@ export function StyledExample() {
           Clear
         </FilterBar.Clear>
       </div>
-      <FilterBar.ActiveItems />
+      <FilterBar.Content>
+        <FilterBar.PinnedItems />
+        <FilterBar.ActiveItems />
+        <FilterBar.SuggestedItems />
+      </FilterBar.Content>
     </FilterBar.Root>
   );
 }
@@ -135,88 +133,19 @@ export function StyledExample() {
 - Typed operator-to-value mapping per field kind
 - Builder API with strong TypeScript inference
 - Grouped field definitions for trigger menus
-- Uncontrolled and controlled `FilterBar.Root`
-- Optional `useFilterBarController()` for draft/applied workflows
-- Built-in row editors for all current field kinds
-- Custom field value editors via `.render(...)`
-- Field-level validation via `.validate(...)`
-- Schema-style validation via `.zod(...)`
-- Field display metadata with `.pin()` and `.suggest()`
-- Optional `FilterBar.Content` regions for pinned, active, and suggested items
-- Static select options
-- Async option loading with request cancellation and caching
-- Custom option sources via `.useOptions(...)`
+- Flat active state as `FilterBarValue[]`
+- Controlled and uncontrolled `FilterBar.Root`
+- Optional `useFilterBarController()` for draft/applied coordination
+- Pinned fields and suggested fields
+- Built-in editors for all current field kinds
+- Custom value editors with `.render(...)`
+- Field validation with `.validate(...)`
+- Safe-parse-compatible schema validation with `.zod(...)`
+- Static options, async option loaders, and `.useOptions(...)`
 - Searchable select and multi-select menus
-- Multi-select value labels and max selection limits
+- Multi-select value label rendering and max-selection limits
 - Saved views backed by `localStorage`
-- Optional URL query sync with `nuqs`
-
-## Architecture
-
-### `logical`
-
-Located in [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical).
-
-This layer defines:
-
-- field kinds
-- operator definitions
-- operator value typing
-- AST types
-
-It is framework-agnostic and does not depend on React.
-
-### `filter-bar`
-
-Located in [`src/filter-bar`](https://github.com/rien7/filtro/tree/main/src/filter-bar).
-
-This layer contains:
-
-- builder API
-- UI field types
-- `FilterBar.Root / Trigger / Content / ActiveItems / PinnedItems / SuggestedItems / Clear / SaveView / Views`
-- current flat condition state model
-- theme slot contract and helpers
-- primitive slot contract for the Base UI wrappers used by `FilterBar`
-- internal Base UI-backed primitives used by the implementation
-
-`FilterBar` ships with internal Base UI wrappers and slot hooks by default. The optional default preset adds both slot-level and primitive-level styling on top, but it is still a concrete React UI implementation. It is not a pure primitive-agnostic core, and it is not the future nested builder described in planning docs.
-
-### `filter-bar/internal/primitives/baseui`
-
-Located in [`src/filter-bar/internal/primitives/baseui`](https://github.com/rien7/filtro/tree/main/src/filter-bar/internal/primitives/baseui).
-
-This layer contains the internal wrappers that the current `FilterBar` implementation needs:
-
-- `Button`
-- `SegmentedControl`
-- `Input`
-- `Select`
-- `DropdownMenu`
-- `ButtonGroup`
-
-These wrappers stay thin and mainly expose structure plus Base UI `data-slot`s. They are implementation details of the current `FilterBar`, not the same thing as the default theme preset.
-
-### `default-theme`
-
-Located in [`src/presets/default-theme`](https://github.com/rien7/filtro/tree/main/src/presets/default-theme).
-
-This layer contains:
-
-- `defaultFilterBarTheme`
-- preset primitive class mappings keyed by camelCase slot names for Base UI `data-slot`s
-- the precompiled `filtro/default-theme.css` stylesheet
-- convenience re-exports of the styled wrappers used by the default preset
-
-This is where preset-level sugar such as `Button` variants and sizes lives. The internal `filter-bar/internal/primitives/baseui` wrappers stay thin, while `filtro/default-theme` owns the default visual opinion.
-
-It is optional. If you only want the base FilterBar implementation without the preset layer, you do not need this preset.
-
-### `nuqs`
-
-Located in [`src/nuqs`](https://github.com/rien7/filtro/tree/main/src/nuqs).
-
-This layer contains optional helpers for syncing `FilterBarValue[]` with the URL query string.
+- Optional URL sync with `nuqs`
 
 ## Builder API
 
@@ -254,7 +183,7 @@ Common builder methods:
 - `.validate()`
 - `.zod()`
 
-Select-specific methods:
+Select and multi-select methods:
 
 - `.options()`
 - `.useOptions()`
@@ -266,21 +195,32 @@ Multi-select extras:
 - `.renderValueLabel()`
 - `.maxSelections()`
 
-Boolean extras:
+Boolean fields require explicit options:
 
-- `.options()`
+```tsx
+filtro.boolean("archived").options([
+  { label: "Archived", value: true },
+  { label: "Not Archived", value: false },
+]);
+```
 
 Operator behavior:
 
-- no `.operator(...)`: keep all operators for that field kind
-- `.operator("eq")`: restrict to one allowed operator but still render operator text
-- `.operator(["eq", "contains"] as const, { default: "contains" })`: keep a subset and pick the initial operator
-- `.operator({ default: "contains" })`: keep all operators and pick the initial operator
+- No `.operator(...)`: keep all operators for that field kind
+- `.operator("eq")`: restrict to one operator, but still render operator text
+- `.operator(["eq", "contains"] as const, { default: "contains" })`: keep a subset and set the initial operator
+- `.operator({ default: "contains" })`: keep all operators and set the initial operator
 - `.fixedOperator("eq")`: lock the operator and hide the operator segment
 
-## Field Display
+## Display Modes
 
-Fields can stay in the trigger menu by default, render as a persistent pinned row, or render as a suggestion entry.
+Fields can appear in three UI modes:
+
+- `default`: shown from `FilterBar.Trigger`
+- `pinned`: always rendered by `FilterBar.PinnedItems`
+- `suggested`: rendered by `FilterBar.SuggestedItems` until activated or dismissed
+
+Example:
 
 ```tsx
 const fields = [
@@ -300,74 +240,25 @@ const fields = [
       },
     }),
 ];
-
-<FilterBar.Root fields={fields}>
-  <div className="toolbar">
-    <FilterBar.Trigger render={<button type="button" />}>
-      Add Filter
-    </FilterBar.Trigger>
-    <FilterBar.Clear render={<button type="button" />}>
-      Clear
-    </FilterBar.Clear>
-  </div>
-  <FilterBar.Content>
-    <FilterBar.PinnedItems />
-    <FilterBar.ActiveItems />
-    <FilterBar.SuggestedItems />
-  </FilterBar.Content>
-</FilterBar.Root>
 ```
 
-Behavior:
+`FilterBarValue[]` still stores only meaningful active conditions:
 
-- `default`: only shown through `FilterBar.Trigger`
-- `pinned`: always rendered by `FilterBar.PinnedItems`, even when no active value exists
-- `suggested`: rendered by `FilterBar.SuggestedItems` until it is clicked
+- `string`: `""` is removed
+- `multiSelect`: `[]` is removed
+- Other field kinds: `null` is removed
+- Empty operators such as `isEmpty` and `isNotEmpty` stay active
 
-If a field uses `.pin()`, render `FilterBar.PinnedItems`. If a suggestion uses `showInMenu: false`, render `FilterBar.SuggestedItems`, or that field may not be visible anywhere.
+## Controlled Usage and `useFilterBarController`
 
-`FilterBarValue[]` still only stores active conditions. Empty values are automatically removed from active state:
-
-- `string`: `""` is treated as absent
-- `multiSelect`: `[]` is treated as absent
-- other field kinds: `null` is treated as absent
-- empty operators such as `isEmpty` remain valid active conditions
-
-## Current State Model
-
-`FilterBar` currently stores flat values as `FilterBarValue[]`.
-
-Important constraints:
-
-- Each field appears at most once
-- Duplicate conditions for the same field are not supported
-- The UI does not emit `FilterRoot`
-- Nested groups are not supported
-
-The helper exports around this model include:
-
-- `resolveFilterBarFields`
-- `sanitizeFilterBarDraftValue`
-- `sanitizeFilterBarDraftValues`
-- `sanitizeFilterBarValue`
-- `sanitizeFilterBarValues`
-- `serializeFilterBarValue`
-- `deserializeFilterBarValue`
-
-## Controlled And Controller
-
-`FilterBar.Root` remains a controlled/uncontrolled editor.
+`FilterBar.Root` edits flat active values as `FilterBarValue[]`.
 
 Controlled usage:
 
 ```tsx
-const [value, setValue] = useState<FilterBarValueType>([]);
+const [value, setValue] = useState([]);
 
-<FilterBar.Root
-  fields={fields}
-  value={value}
-  onChange={(nextValue) => setValue(nextValue)}
->
+<FilterBar.Root fields={fields} value={value} onChange={setValue}>
   <FilterBar.Trigger render={<button type="button" />}>
     Add Filter
   </FilterBar.Trigger>
@@ -378,7 +269,18 @@ const [value, setValue] = useState<FilterBarValueType>([]);
 </FilterBar.Root>
 ```
 
-If the page needs separate draft and applied filters, use `useFilterBarController()`:
+`onChange` is called as:
+
+```ts
+onChange?: (
+  nextValue: FilterBarValueType,
+  meta?: FilterBarChangeMeta,
+) => void;
+```
+
+Important: controlled mode only controls meaningful active values. Incomplete row drafts still live inside `FilterBar` until they become valid active values or are removed.
+
+If you need separate draft and applied filters, use `useFilterBarController()`:
 
 ```tsx
 const filters = useFilterBarController({
@@ -405,61 +307,70 @@ const filters = useFilterBarController({
 </button>
 ```
 
-`FilterBar.Root` now calls controlled `onChange` as:
+## Styling
 
-```ts
-onChange?: (
-  nextValue: FilterBarValueType,
-  meta?: FilterBarChangeMeta,
-) => void;
-```
+The root package does not ship a visual preset by default.
 
-The extra `meta` describes what changed. `useFilterBarController()` uses it to drive automatic apply behavior.
-
-## Styling Notes
-
-`defaultFilterBarTheme` is in `filtro/default-theme`, not in the root entry.
+To use the official preset:
 
 ```tsx
 import "filtro/default-theme.css";
-import { FilterBar } from "filtro";
 import { defaultFilterBarTheme } from "filtro/default-theme";
 ```
 
-`filtro/default-theme.css` is a precompiled stylesheet. That means:
+The stylesheet is precompiled, so consuming apps do not need a Tailwind build step to use it.
 
-- It is optional
-- It is only needed for the default visual preset
-- It can be imported directly by the consuming app without a Tailwind build step
+Theme customization has two surfaces:
 
-If you do not want that dependency, use `filtro` alone and provide your own slot and primitive styles.
+- `classNames`: targets `FilterBar`'s own `data-theme-slot` attributes
+- `primitiveClassNames`: targets the internal Base UI wrappers by camelCase slot name
 
-`FilterBarTheme` now has two styling surfaces:
+Theme helpers exported from `filtro`:
 
-- `classNames` for `FilterBar`'s own `data-theme-slot`s
-- `primitiveClassNames` for the internal Base UI wrappers' camelCase slot keys, which map to Base UI `data-slot`s
+- `headlessFilterBarTheme`
+- `mergeFilterBarTheme`
+- `FilterBar.ThemeProvider`
+- `useFilterBarTheme`
 
-For example, `primitiveClassNames.selectTrigger` targets the internal primitive that renders `data-slot="select-trigger"`.
+## Architecture
 
-Theme overrides are merged slot by slot with `cn`/`twMerge`, so later theme entries and explicit `className` props win on conflicts.
+### `logical`
+
+Located in [src/logical](https://github.com/rien7/filtro/tree/main/src/logical).
+
+This layer defines field kinds, operator/value typing, and AST types. It is framework-agnostic and does not depend on React.
+
+### `filter-bar`
+
+Located in [src/filter-bar](https://github.com/rien7/filtro/tree/main/src/filter-bar).
+
+This layer contains the current flat `FilterBar` implementation, the builder API, theme contracts, and the current `FilterBarValue[]` state model.
+
+### `filter-bar/internal/primitives/baseui`
+
+Located in [src/filter-bar/internal/primitives/baseui](https://github.com/rien7/filtro/tree/main/src/filter-bar/internal/primitives/baseui).
+
+These are thin internal wrappers around Base UI primitives used by the current `FilterBar` implementation.
+
+### `default-theme`
+
+Located in [src/presets/default-theme](https://github.com/rien7/filtro/tree/main/src/presets/default-theme).
+
+This layer owns the optional default visual opinion, preset class mappings, and the precompiled `filtro/default-theme.css` stylesheet.
+
+### `nuqs`
+
+Located in [src/nuqs](https://github.com/rien7/filtro/tree/main/src/nuqs).
+
+This layer provides optional helpers for syncing `FilterBarValue[]` to the URL query string.
 
 ## Boundary Rules
 
-- `src/logical` stays pure domain and type logic. Do not put React there.
-- `src/filter-bar` is the current product implementation for a flat filter bar.
-- `src/filter-bar/internal/primitives/baseui` belongs to the implementation layer, not the preset layer.
-- `src/presets/default-theme` is optional visual infrastructure, not the owner of `FilterBar` runtime behavior.
-- If the requirement becomes nested groups, repeated conditions, AST editing, or a more generic filter builder, treat that as a new phase instead of stretching the current `FilterBarValue[]` model.
-
-## Repository Layout
-
-- [`src/index.ts`](https://github.com/rien7/filtro/blob/main/src/index.ts): root package entry
-- [`src/logical`](https://github.com/rien7/filtro/tree/main/src/logical): typed logical layer
-- [`src/filter-bar`](https://github.com/rien7/filtro/tree/main/src/filter-bar): current flat FilterBar implementation
-- [`src/filter-bar/internal/primitives/baseui`](https://github.com/rien7/filtro/tree/main/src/filter-bar/internal/primitives/baseui): internal Base UI wrappers used by FilterBar
-- [`src/presets/default-theme`](https://github.com/rien7/filtro/tree/main/src/presets/default-theme): optional default preset
-- [`src/nuqs/index.ts`](https://github.com/rien7/filtro/blob/main/src/nuqs/index.ts): URL sync helpers
-- [`playground`](https://github.com/rien7/filtro/tree/main/playground): local demo app
+- `src/logical` stays pure domain logic. Do not put React there.
+- `src/filter-bar` is the current flat `FilterBar` product.
+- `src/filter-bar/internal/primitives/baseui` is implementation detail, not the preset layer.
+- `src/presets/default-theme` is optional visual infrastructure, not the owner of runtime behavior.
+- If the requirement becomes nested groups, repeated conditions, AST editing, or a more generic builder core, treat that as a new phase instead of stretching the current `FilterBarValue[]` model.
 
 ## Local Development
 
@@ -477,16 +388,17 @@ Useful commands:
 - `pnpm run build:css`
 - `pnpm run dev:ui`
 - `pnpm run build:ui`
+- `pnpm run preview:ui`
 
 The playground imports the source tree directly, so it is the fastest way to inspect behavior while changing the library.
 
 ## Additional Docs
 
-- [`docs/filter-bar-controller.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-controller.md)
-- [`docs/filter-bar-nuqs.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-nuqs.md)
-- [`docs/filter-bar-display.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-display.md)
-- [`docs/filter-bar-render.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-render.md)
-- [`docs/filter-bar-validation.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-validation.md)
-- [`docs/filter-bar-styling.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-styling.md)
-- [`docs/filter-bar-views.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-views.md)
-- [`docs/filter-bar-options.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-options.md)
+- [docs/filter-bar-controller.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-controller.md)
+- [docs/filter-bar-display.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-display.md)
+- [docs/filter-bar-nuqs.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-nuqs.md)
+- [docs/filter-bar-options.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-options.md)
+- [docs/filter-bar-render.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-render.md)
+- [docs/filter-bar-styling.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-styling.md)
+- [docs/filter-bar-validation.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-validation.md)
+- [docs/filter-bar-views.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-views.md)

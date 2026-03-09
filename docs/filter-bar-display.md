@@ -1,22 +1,22 @@
 # FilterBar Field Display
 
-`FilterBar` 现在支持三种字段显示方式：
+`FilterBar` supports three display modes:
 
 - `default`
 - `suggested`
 - `pinned`
 
-它们解决的是“字段如何出现在 UI 中”，不是新的过滤语义。
+These modes only control how fields appear in the UI. They do not introduce new filtering semantics.
 
-底层规则保持不变：
+The underlying rules stay the same:
 
-- `FilterBarValue[]` 仍然只保存当前生效的条件
-- `logical` 层不引入展示语义
-- 不支持重复字段条件或嵌套分组
+- Active state is still `FilterBarValue[]`
+- `logical` stays free of display concerns
+- Duplicate field conditions and nested groups are still unsupported
 
-## 1. Builder API
+## Builder API
 
-字段显示方式通过 builder metadata 声明：
+Display mode is declared as field metadata:
 
 ```tsx
 import { filtro } from "filtro";
@@ -46,20 +46,18 @@ const fields = [
 ];
 ```
 
-可用方法：
+Available methods:
 
 - `.pin()`
 - `.suggest(config?)`
 
-默认情况下，字段就是普通 `default` item，不需要额外声明。
+If neither is used, the field stays in the default trigger-menu flow.
 
-## 2. 渲染结构
+## Recommended Rendering Structure
 
-如果你要使用 pinned / suggested 能力，推荐显式渲染完整内容区：
+If you use pinned or suggested fields, render the full content region explicitly:
 
 ```tsx
-import { FilterBar } from "filtro";
-
 <FilterBar.Root fields={fields}>
   <div className="toolbar">
     <FilterBar.Trigger render={<button type="button" />}>
@@ -77,64 +75,48 @@ import { FilterBar } from "filtro";
 </FilterBar.Root>
 ```
 
-职责划分：
+Responsibilities:
 
-- `FilterBar.Content`
-  - item 的主内容区容器
+- `FilterBar.Content`: shared container for the filter content area
+- `FilterBar.PinnedItems`: always renders pinned fields, even when they have no active value
+- `FilterBar.ActiveItems`: renders active rows plus active suggested rows
+- `FilterBar.SuggestedItems`: renders inactive suggestion entries
 
-- `FilterBar.PinnedItems`
-  - 渲染所有 pinned 字段
-  - 没有 active value 时，仍然显示空态 row
+Rules to keep in mind:
 
-- `FilterBar.ActiveItems`
-  - 渲染普通 active / draft rows
-  - suggestion 一旦被点击，也进入这里
+- If a field uses `.pin()`, render `FilterBar.PinnedItems`
+- If a suggestion uses `showInMenu: false`, render `FilterBar.SuggestedItems`
+- Otherwise the field may not be visible anywhere
 
-- `FilterBar.SuggestedItems`
-  - 只渲染未激活的 suggestion 入口
-  - 点击后进入 `ActiveItems`
+## Active Value Semantics
 
-使用前提：
+Display mode does not change what counts as an active value.
 
-- 只要字段用了 `.pin()`，就应该渲染 `FilterBar.PinnedItems`
-- 如果 suggestion 配了 `showInMenu: false`，也应该渲染 `FilterBar.SuggestedItems`
-- 否则这些字段可能不会出现在任何可见入口里
+`FilterBarValue[]` only stores meaningful active conditions:
 
-## 3. Active Value 语义
+- `string`: `""` is removed
+- `multiSelect`: `[]` is removed
+- Other field kinds: `null` is removed
+- `isEmpty` and `isNotEmpty` remain valid active conditions
 
-显示方式不改变 active value 规则。
+That means:
 
-`FilterBarValue[]` 里只保留“有意义的条件”：
+- Clearing a pinned field removes its active value, but the row stays visible
+- Clearing a suggested field removes its active value and then follows `removeBehavior`
 
-- `string`
-  - `""` 自动视为不存在
-- `multiSelect`
-  - `[]` 自动视为不存在
-- 其它字段
-  - `null` 自动视为不存在
-- `isEmpty` / `isNotEmpty`
-  - 仍然是有效条件，不会因为 `value === null` 被移除
+## Runtime Area Attributes
 
-这意味着：
+The current implementation exposes UI placement through `data-area`:
 
-- pinned 字段清空后，会从 active values 移除，但 row 仍继续显示
-- suggested 字段清空后，会从 active values 移除，然后按 `removeBehavior` 回流
+- Pinned row: `data-area="pinned"`
+- Active row: `data-area="active"`
+- Suggestion entry: `data-area="suggestion"`
 
-## 4. 运行时区域属性
+This describes where an element is rendered right now. It does not expose older placement concepts such as row source or historical status.
 
-字段 metadata 的 `default / suggested / pinned` 只负责派生 UI 位置。
+## Suggestion Configuration
 
-真正渲染到 DOM 时，当前实现统一暴露 `data-area`：
-
-- pinned row: `data-area="pinned"`
-- active row: `data-area="active"`
-- suggestion button: `data-area="suggestion"`
-
-这层属性只描述“当前元素出现在什么区域”，不再混入历史上的 `placement` 或 `row-source` 语义。
-
-## 5. Suggested 配置
-
-`suggest()` 支持三类配置：
+`.suggest()` supports three knobs:
 
 ```tsx
 filtro.string("keyword")
@@ -149,37 +131,38 @@ filtro.string("keyword")
   });
 ```
 
-含义：
+Meaning:
 
-- `seed`
-  - suggestion 点击后的初始草稿
-- `removeBehavior`
-  - `"back-to-suggestion"`: 删除或清空后回到 suggestion 区
-  - `"back-to-menu"`: 删除或清空后从 suggestion 区消失，只保留 menu 入口
-- `showInMenu`
-  - `true`: 未激活时仍然保留在 `Trigger` 菜单中
-  - `false`: 未激活时只通过 suggestion 区暴露
+- `seed`: the initial operator and value used when the suggestion is activated
+- `removeBehavior: "back-to-suggestion"`: clearing or removing the row sends it back to the suggestion area
+- `removeBehavior: "back-to-menu"`: clearing or removing the row hides the suggestion entry and leaves only the trigger-menu entry
+- `showInMenu: true`: keep the field in `FilterBar.Trigger` even while it is inactive
+- `showInMenu: false`: expose the field only through the suggestion area while inactive
 
-如果 `seed` 本身不是有效 active condition，点击 suggestion 后会先进入内部 draft state，而不是立刻进入 `values`。
+If the seed does not produce a meaningful active value, the field first enters internal draft row state instead of immediately entering active `values`.
 
-## 6. Clear / Remove 行为
+## Clear and Remove Behavior
 
-- 普通 item 删除后直接从 `values` 消失
-- suggested item 删除后从 `values` 移除，并按 `removeBehavior` 回流
-- pinned item 不显示删除按钮；清空后只会 reset 值，不会移除 pinned row
-- `FilterBar.Clear` 只清空 active values
-  - pinned row 会回到空态
-  - suggestion 会重新出现，或按 `back-to-menu` 保持收起
+- Removing a default row removes it from active values
+- Removing a suggested row removes it from active values, then follows `removeBehavior`
+- Pinned rows do not render a remove button
+- Clearing a pinned row resets its value but keeps the row on screen
+- `FilterBar.Clear` clears active values and active drafts
 
-## 7. 当前边界
+After `FilterBar.Clear`:
 
-这版显示方式实现刻意收窄范围：
+- Pinned rows stay visible in their empty state
+- Suggestions reappear, unless they are configured to go back to the menu only
 
-- 不包含 `select` / `multiSelect` 的 editorVariant
-- 不包含 segment / chips / expand 展示变体
-- 不改 `FilterBarValue[]` 的 flat active model
+## Current Scope
 
-相关文档：
+This display system intentionally stays narrow:
+
+- No extra select or multi-select display variants
+- No chips, segment, or expandable row variants
+- No changes to the flat `FilterBarValue[]` state model
+
+Related docs:
 
 - [docs/filter-bar-styling.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-styling.md)
 - [docs/filter-bar-controller.md](https://github.com/rien7/filtro/blob/main/docs/filter-bar-controller.md)
