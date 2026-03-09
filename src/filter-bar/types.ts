@@ -7,6 +7,52 @@ import {
 } from "../logical/field";
 import type { OperatorKindFor, OperatorValueFor } from "../logical/operator";
 
+export const FilterBarFieldDisplayKind = {
+  default: "default",
+  pinned: "pinned",
+  suggested: "suggested",
+} as const;
+
+export type FilterBarFieldDisplayKind =
+  (typeof FilterBarFieldDisplayKind)[keyof typeof FilterBarFieldDisplayKind];
+
+export const FilterBarSuggestionRemoveBehavior = {
+  backToSuggestion: "back-to-suggestion",
+  backToMenu: "back-to-menu",
+} as const;
+
+export type FilterBarSuggestionRemoveBehavior =
+  (typeof FilterBarSuggestionRemoveBehavior)[keyof typeof FilterBarSuggestionRemoveBehavior];
+
+export interface FilterBarSuggestionSeed<Kind extends EnumFieldKind = EnumFieldKind> {
+  operator?: OperatorKindFor<Kind>;
+  value?: OperatorValueFor<Kind, OperatorKindFor<Kind>> | null;
+}
+
+export interface FilterBarSuggestedDisplay<
+  Kind extends EnumFieldKind = EnumFieldKind,
+> {
+  kind: "suggested";
+  seed?: FilterBarSuggestionSeed<Kind>;
+  removeBehavior?: FilterBarSuggestionRemoveBehavior;
+  showInMenu?: boolean;
+}
+
+export interface FilterBarDefaultDisplay {
+  kind: "default";
+}
+
+export interface FilterBarPinnedDisplay {
+  kind: "pinned";
+}
+
+export type FilterBarFieldDisplay<
+  Kind extends EnumFieldKind = EnumFieldKind,
+> =
+  | FilterBarDefaultDisplay
+  | FilterBarPinnedDisplay
+  | FilterBarSuggestedDisplay<Kind>;
+
 export type UIFieldRender = <
   Kind extends EnumFieldKind,
   Op extends OperatorKindFor<Kind>,
@@ -74,6 +120,7 @@ export interface UIFieldBase<
   placeholder?: string;
   render?: UIFieldRender;
   validators?: UIFieldValidator[];
+  display?: FilterBarFieldDisplay<Kind>;
 }
 
 export interface SelectOption {

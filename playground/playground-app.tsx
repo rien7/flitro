@@ -115,7 +115,11 @@ function DemoCard({
             Clear
           </FilterBar.Clear>
         </div>
-        <FilterBar.Items className="demo-items" />
+        <FilterBar.Content>
+          <FilterBar.PinnedItems />
+          <FilterBar.ActiveItems className="demo-items" />
+          <FilterBar.SuggestedItems />
+        </FilterBar.Content>
       </FilterBar.Root>
     </section>
   );
@@ -173,7 +177,11 @@ function NuqsDemoCard({
             Clear
           </FilterBar.Clear>
         </div>
-        <FilterBar.Items className="demo-items" />
+        <FilterBar.Content>
+          <FilterBar.PinnedItems />
+          <FilterBar.ActiveItems className="demo-items" />
+          <FilterBar.SuggestedItems />
+        </FilterBar.Content>
       </FilterBar.Root>
     </section>
   );
@@ -186,6 +194,12 @@ function useFiltroFields() {
         filtro.string("keyword")
           .label("Keyword")
           .placeholder("Search name or email")
+          .suggest({
+            seed: {
+              operator: "contains",
+              value: "",
+            },
+          })
           .operator((ops) => ops),
         filtro.number("amount")
           .label("Amount")
@@ -206,11 +220,14 @@ function useFiltroFields() {
           )),
       ]),
       filtro.group("Attributes", [
-        filtro.select("status").label("Status").options([
-          { label: "Open", value: "open" },
-          { label: "Closed", value: "closed" },
-          { label: "Pending", value: "pending" },
-        ]),
+        filtro.select("status")
+          .label("Status")
+          .pin()
+          .options([
+            { label: "Open", value: "open" },
+            { label: "Closed", value: "closed" },
+            { label: "Pending", value: "pending" },
+          ]),
         filtro.select("owner")
           .label("Owner")
           .placeholder("Async options after 5s")
@@ -254,7 +271,13 @@ function useFiltroFields() {
         filtro.boolean("archived").label("Archived").options([
           { label: "Archived", value: true },
           { label: "Not Archived", value: false },
-        ]),
+        ])
+          .suggest({
+            seed: {
+              value: true,
+            },
+            showInMenu: false,
+          }),
       ]),
     ],
     [],
@@ -331,7 +354,8 @@ export function PlaygroundApp() {
       <h1>Filtro UI Playground</h1>
       <p className="sub">
         Compare the headless FilterBar with the default themed preset and use
-        this page to debug the UI with HMR.
+        this page to debug the UI with HMR. This demo includes a pinned status
+        row plus keyword and archived suggestions.
       </p>
 
       <div className="view-switcher" role="group" aria-label="Choose playground view">

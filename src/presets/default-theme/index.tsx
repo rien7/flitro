@@ -23,7 +23,12 @@ export const defaultFilterBarTheme: FilterBarTheme = {
   ...headlessFilterBarTheme,
   unstyledPrimitives: false,
   classNames: {
-    itemsRoot: "flex flex-row flex-wrap gap-3",
+    contentRoot: "flex flex-col gap-3",
+    pinnedItemsRoot: "flex flex-row flex-wrap gap-3",
+    suggestedItemsRoot: "flex flex-row flex-wrap gap-3",
+    suggestionButton:
+      "min-h-9 min-w-0 max-w-full justify-start gap-0 overflow-hidden border-border bg-background px-0 font-normal text-foreground shadow-none",
+    activeItemsRoot: "flex flex-row flex-wrap gap-3",
     emptyState:
       "text-muted-foreground flex min-h-24 items-center justify-center rounded-2xl border border-dashed px-4 text-sm",
     rowRoot: "flex min-w-0 flex-col gap-1",

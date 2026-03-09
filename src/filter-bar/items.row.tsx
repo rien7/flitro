@@ -33,6 +33,8 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
   item,
   onUpdate,
   onRemove,
+  removable = true,
+  area = "active",
 }: {
   field: UIFieldForKind<FieldId, Kind>;
   item: FilterBarValue<FieldId, Kind>;
@@ -45,6 +47,8 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
     },
   ) => void;
   onRemove: () => void;
+  removable?: boolean;
+  area?: "active" | "pinned";
 }) {
   const theme = useFilterBarTheme();
   const errorId = useId();
@@ -52,14 +56,20 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
   const allowedOperators = getFieldAllowedOperators(field);
   const hasLockedOperator = hasFieldFixedOperator(field);
   const hasMultipleOperators = allowedOperators.length > 1;
+  const hidesValueEditor = isEmptyOperator(item.operator);
+  const shouldRoundFieldRight = !removable && hidesValueEditor && hasLockedOperator;
+  const shouldRoundOperatorRight = !removable && hidesValueEditor && !hasLockedOperator;
+  const shouldRoundValueRight = !removable && !hidesValueEditor;
 
   return (
     <div
       data-theme-slot={filterBarThemeSlot("rowRoot")}
+      data-area={area}
       className={theme.classNames.rowRoot}
     >
       <ButtonGroup
         data-theme-slot={filterBarThemeSlot("row")}
+        data-area={area}
         unstyled={theme.unstyledPrimitives}
         className={theme.classNames.row}
       >
@@ -69,6 +79,7 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
           className={cn(
             theme.classNames.rowField,
             hasLockedOperator ? "border-r" : null,
+            shouldRoundFieldRight ? "rounded-r-md" : null,
           )}
         >
           <span
@@ -111,6 +122,7 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
               className={cn(
                 theme.classNames.selectTrigger,
                 theme.classNames.rowOperatorTrigger,
+                shouldRoundOperatorRight ? "rounded-r-md border-r" : null,
               )}
               render={<Button unstyled={theme.unstyledPrimitives} variant="outline" />}
             >
@@ -140,7 +152,10 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
           <ButtonGroupText
             data-theme-slot={filterBarThemeSlot("rowOperatorText")}
             unstyled={theme.unstyledPrimitives}
-            className={theme.classNames.rowOperatorText}
+            className={cn(
+              theme.classNames.rowOperatorText,
+              shouldRoundOperatorRight ? "rounded-r-md border-r" : null,
+            )}
           >
             <span>{OPERATOR_LABELS[item.operator] ?? item.operator}</span>
           </ButtonGroupText>
@@ -150,7 +165,11 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
           <div
             data-slot="button-group-text"
             data-theme-slot={filterBarThemeSlot("rowValue")}
-            className={theme.classNames.rowValue}
+            data-area={area}
+            className={cn(
+              theme.classNames.rowValue,
+              shouldRoundValueRight ? "border-r rounded-r-md" : null,
+            )}
           >
             <FilterValueEditor
               field={field}
@@ -178,17 +197,20 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
           </div>
         )}
 
-        <Button
-          data-theme-slot={filterBarThemeSlot("rowRemoveButton")}
-          unstyled={theme.unstyledPrimitives}
-          variant="outline"
-          size="lg"
-          aria-label={`Remove ${field.label ?? field.id} filter`}
-          onClick={onRemove}
-          className={theme.classNames.rowRemoveButton}
-        >
-          {theme.icons.remove ?? theme.texts.removeLabelFallback}
-        </Button>
+        {removable ? (
+          <Button
+            data-theme-slot={filterBarThemeSlot("rowRemoveButton")}
+            data-area={area}
+            unstyled={theme.unstyledPrimitives}
+            variant="outline"
+            size="lg"
+            aria-label={`Remove ${field.label ?? field.id} filter`}
+            onClick={onRemove}
+            className={theme.classNames.rowRemoveButton}
+          >
+            {theme.icons.remove ?? theme.texts.removeLabelFallback}
+          </Button>
+        ) : null}
       </ButtonGroup>
 
       {validationMessage ? (

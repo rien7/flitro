@@ -15,6 +15,11 @@ import type {
   UIFieldForKind,
 } from "@/filter-bar/types";
 
+export interface FilterBarValueSeed<Kind extends EnumFieldKind = EnumFieldKind> {
+  operator?: OperatorKindFor<Kind>;
+  value?: FilterBarValue<string, Kind>["value"];
+}
+
 export function flattenSelectOptions(
   options: SelectOption[],
   path: string[] = [],
@@ -68,22 +73,16 @@ export function normalizeValueForOperator<FieldId extends string, Kind extends E
       }
       return typeof previousValue === "string" ? previousValue : null;
     case FieldKind.select: {
-      const firstOption =
-        isStaticSelectField(field) ? flattenSelectOptions(field.options)[0]?.value : undefined;
-
-      if (Array.isArray(previousValue)) return previousValue[0] ?? firstOption ?? "";
-      return typeof previousValue === "string" ? previousValue : (firstOption ?? "");
+      if (Array.isArray(previousValue)) return previousValue[0] ?? null;
+      return typeof previousValue === "string" ? previousValue : null;
     }
     case FieldKind.multiSelect: {
-      const firstOption =
-        isStaticSelectField(field) ? flattenSelectOptions(field.options)[0]?.value : undefined;
-
       if (Array.isArray(previousValue)) return previousValue;
       if (typeof previousValue === "string") return [previousValue];
-      return firstOption ? [firstOption] : [];
+      return [];
     }
     case FieldKind.boolean:
-      return typeof previousValue === "boolean" ? previousValue : true;
+      return typeof previousValue === "boolean" ? previousValue : null;
     default:
       return previousValue;
   }
@@ -91,20 +90,15 @@ export function normalizeValueForOperator<FieldId extends string, Kind extends E
 
 export function createFilterBarValue<
   FieldId extends string,
-  Kind extends Exclude<EnumFieldKind, SelectKind>,
+  Kind extends EnumFieldKind,
 >(
   field: UIFieldForKind<FieldId, Kind>,
-): FilterBarValue<FieldId, Kind> | null;
-export function createFilterBarValue<FieldId extends string, Kind extends SelectKind>(
-  field: SelectUIField<FieldId, Kind>,
-  initialValue?: string,
-): FilterBarValue<FieldId, Kind> | null;
-export function createFilterBarValue<FieldId extends string>(
-  field: UIFieldForKind<FieldId, EnumFieldKind>,
-  initialValue?: string,
+  seed?: FilterBarValueSeed<Kind>,
 ) {
   const allowedOperators = getFieldAllowedOperators(field);
-  const operator = allowedOperators[0];
+  const operator = seed?.operator && allowedOperators.includes(seed.operator)
+    ? seed.operator
+    : allowedOperators[0];
 
   if (operator === undefined) {
     return null;
@@ -118,7 +112,7 @@ export function createFilterBarValue<FieldId extends string>(
     value: normalizeValueForOperator({
       field: field as UIFieldForKind<FieldId, typeof field.kind>,
       operator: operator as OperatorKindFor<typeof field.kind>,
-      previousValue: (initialValue ?? null) as FilterBarValue<FieldId, typeof field.kind>["value"],
+      previousValue: (seed?.value ?? null) as FilterBarValue<FieldId, typeof field.kind>["value"],
     }),
   } as FilterBarValue<FieldId, typeof field.kind>;
 }
@@ -186,9 +180,12 @@ export function getFilterBarValueCompleteness(
   }
 }
 
-export function upsertFilterBarValue(
-  values: FilterBarValueType,
-  nextValue: FilterBarValueType[number],
+export function upsertFilterBarValue<
+  FieldId extends string,
+  Kind extends EnumFieldKind,
+>(
+  values: FilterBarValueType<FieldId, Kind>,
+  nextValue: FilterBarValueType<FieldId, Kind>[number],
 ) {
   const currentIndex = values.findIndex((value) => value.fieldId === nextValue.fieldId);
 
@@ -201,7 +198,13 @@ export function upsertFilterBarValue(
   return nextValues;
 }
 
-export function removeFilterBarValue(values: FilterBarValueType, fieldId: string) {
+export function removeFilterBarValue<
+  FieldId extends string,
+  Kind extends EnumFieldKind,
+>(
+  values: FilterBarValueType<FieldId, Kind>,
+  fieldId: string,
+) {
   const nextValues = values.filter((value) => value.fieldId !== fieldId);
   return nextValues.length === values.length ? values : nextValues;
 }

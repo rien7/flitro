@@ -91,7 +91,7 @@ export function Filters() {
       <FilterBar.Clear render={<button type="button" />}>
         Clear
       </FilterBar.Clear>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
@@ -209,7 +209,7 @@ export function UrlBackedFilters() {
         <FilterBar.Clear render={<button type="button" />}>
           Clear
         </FilterBar.Clear>
-        <FilterBar.Items />
+        <FilterBar.ActiveItems />
       </FilterBar.Root>
 
       <button type="button" onClick={filters.apply} disabled={!filters.isDirty}>

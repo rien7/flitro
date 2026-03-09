@@ -1,76 +1,126 @@
-import { type EnumFieldKind } from "@/logical/field";
-import { type FilterBarValue, useFilterBar } from "@/filter-bar/context";
-import { removeFilterBarValue } from "@/filter-bar/state";
+import { useFilterBar } from "@/filter-bar/context";
+import {
+  applyDisplayRowUpdate,
+  removeDisplayRow,
+  resolveDisplayRows,
+  resolveSuggestionFields,
+} from "@/filter-bar/display";
 import { filterBarThemeSlot, useFilterBarTheme } from "@/filter-bar/theme";
 import { cn } from "@/lib/utils";
-import type { UIFieldForKind } from "@/filter-bar/types";
 
 import { FilterItemRow } from "./items.row";
 
-export function FilterItems({
+export function FilterBarActiveItems({
   className,
 }: {
   className?: string;
 }) {
-  const { changeValues, uiFields, values } = useFilterBar();
+  const {
+    changeDismissedSuggestionFieldIds,
+    changeDraftValues,
+    changeValues,
+    dismissedSuggestionFieldIds,
+    draftValues,
+    uiFields,
+    values,
+  } = useFilterBar();
   const theme = useFilterBarTheme();
-  const fieldById = new Map(uiFields.map((field) => [field.id, field] as const));
-  const activeItems = values.flatMap((item) => {
-    const field = fieldById.get(item.fieldId);
+  const rows = resolveDisplayRows(uiFields, values, draftValues);
+  const pinnedRows = resolveDisplayRows(uiFields, values, draftValues, { area: "pinned" });
+  const suggestionFields = resolveSuggestionFields(uiFields, values, draftValues, dismissedSuggestionFieldIds);
 
-    if (!field) {
-      return [];
+  const updateItem = ({
+    field,
+    item,
+    source,
+    updater,
+    meta,
+  }: {
+    field: (typeof rows)[number]["field"];
+    item: (typeof rows)[number]["item"];
+    source: (typeof rows)[number]["source"];
+    updater: (current: typeof item) => typeof item;
+    meta: {
+      completeness: "complete" | "incomplete";
+      valueChangeKind?: "typing" | "selected";
+      action: "operator" | "value";
+    };
+  }) => {
+    const nextItem = updater(item);
+    const result = applyDisplayRowUpdate({
+      action: meta.action,
+      currentItem: item,
+      field,
+      nextItem,
+      source,
+      draftValues,
+      values,
+    });
+
+    changeDraftValues?.(result.nextDraftValues);
+
+    if (result.dismissedSuggestion !== undefined) {
+      changeDismissedSuggestionFieldIds?.((previous) => {
+        const nextFieldIds = new Set(previous);
+
+        if (result.dismissedSuggestion) {
+          nextFieldIds.add(field.id);
+        } else {
+          nextFieldIds.delete(field.id);
+        }
+
+        return [...nextFieldIds];
+      });
     }
 
-    return [{ field, item }];
-  });
+    if (result.nextValues !== values) {
+      changeValues?.(
+        result.nextValues,
+        meta.action === "value"
+          ? {
+              action: "value",
+              fieldId: field.id,
+              completeness: meta.completeness,
+              valueChangeKind: meta.valueChangeKind ?? "selected",
+            }
+          : {
+              action: "operator",
+              fieldId: field.id,
+              completeness: meta.completeness,
+            },
+      );
+    }
+  };
 
-  const updateItem = <FieldId extends string, Kind extends EnumFieldKind>(
-    field: UIFieldForKind<FieldId, Kind>,
-    updater: (
-      current: FilterBarValue<FieldId, Kind>,
-    ) => FilterBarValue<FieldId, Kind>,
-      meta: {
-        completeness: "complete" | "incomplete";
-        valueChangeKind?: "typing" | "selected";
-        action: "operator" | "value";
-      },
-  ) => {
-    changeValues?.((previous) => {
-      const currentIndex = previous.findIndex((value) => value.fieldId === field.id);
-      const item = previous[currentIndex];
+  const removeItem = (row: (typeof rows)[number]) => {
+    const result = removeDisplayRow(row.field, values, draftValues);
 
-      if (currentIndex === -1 || item === undefined) {
-        return previous;
+    changeDraftValues?.(result.nextDraftValues);
+    changeDismissedSuggestionFieldIds?.((previous) => {
+      const nextFieldIds = new Set(previous);
+
+      if (result.dismissedSuggestion) {
+        nextFieldIds.add(row.field.id);
+      } else {
+        nextFieldIds.delete(row.field.id);
       }
 
-      const nextValues = [...previous];
-      nextValues[currentIndex] = updater(
-        item as unknown as FilterBarValue<FieldId, Kind>,
-      ) as (typeof previous)[number];
-      return nextValues;
-    }, meta.action === "value"
-      ? {
-          action: "value",
-          fieldId: field.id,
-          completeness: meta.completeness,
-          valueChangeKind: meta.valueChangeKind ?? "selected",
-        }
-      : {
-          action: "operator",
-          fieldId: field.id,
-          completeness: meta.completeness,
-        });
-  };
-
-  const removeItem = (fieldId: string) => {
-    changeValues?.((previous) => removeFilterBarValue(previous, fieldId), {
-      action: "remove",
-      fieldId,
+      return [...nextFieldIds];
     });
+
+    if (result.nextValues !== values) {
+      changeValues?.(result.nextValues, {
+        action: "remove",
+        fieldId: row.field.id,
+      });
+    }
   };
 
-  if (!activeItems.length) {
+  if (!rows.length) {
+    if (pinnedRows.length > 0 || suggestionFields.length > 0) {
+      return null;
+    }
+
     return (
       <div
         data-theme-slot={filterBarThemeSlot("emptyState")}
@@ -86,16 +136,24 @@ export function FilterItems({
 
   return (
     <div
-      data-theme-slot={filterBarThemeSlot("itemsRoot")}
-      className={cn(theme.classNames.itemsRoot, className)}
+      data-theme-slot={filterBarThemeSlot("activeItemsRoot")}
+      className={cn(theme.classNames.activeItemsRoot, className)}
     >
-      {activeItems.map(({ field, item }) => (
+      {rows.map((row) => (
         <FilterItemRow
-          key={field.id}
-          field={field as never}
-          item={item as never}
-          onUpdate={(updater, meta) => updateItem(field as never, updater, meta)}
-          onRemove={() => removeItem(field.id)}
+          key={row.field.id}
+          field={row.field as never}
+          item={row.item as never}
+          area="active"
+          onUpdate={(updater, meta) =>
+            updateItem({
+              field: row.field as never,
+              item: row.item as never,
+              source: row.source,
+              updater: updater as never,
+              meta,
+            })}
+          onRemove={() => removeItem(row)}
         />
       ))}
     </div>

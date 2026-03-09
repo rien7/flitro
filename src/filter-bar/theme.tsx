@@ -9,7 +9,11 @@ import {
 import type { EnumFieldKind } from "@/logical/field";
 
 export type FilterBarThemeClassNameSlot =
-  | "itemsRoot"
+  | "contentRoot"
+  | "pinnedItemsRoot"
+  | "suggestedItemsRoot"
+  | "suggestionButton"
+  | "activeItemsRoot"
   | "emptyState"
   | "rowRoot"
   | "row"

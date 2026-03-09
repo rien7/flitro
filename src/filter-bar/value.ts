@@ -75,6 +75,59 @@ function cloneFilterValue(value: FilterBarValue<string, EnumFieldKind>["value"])
   return value;
 }
 
+export function isMeaningfulFilterBarValue(
+  value: FilterBarValue<string, EnumFieldKind>,
+) {
+  if (isEmptyOperator(value.operator)) {
+    return true;
+  }
+
+  switch (value.kind) {
+    case FieldKind.string:
+    case FieldKind.select:
+      return typeof value.value === "string" && value.value.length > 0;
+    case FieldKind.number:
+      if (
+        value.operator === NumberOperatorKind.between ||
+        value.operator === NumberOperatorKind.notBetween
+      ) {
+        return Array.isArray(value.value) &&
+          value.value.length === 2 &&
+          typeof value.value[0] === "number" &&
+          typeof value.value[1] === "number";
+      }
+
+      return typeof value.value === "number";
+    case FieldKind.date:
+      if (
+        value.operator === DateOperatorKind.lastNDays ||
+        value.operator === DateOperatorKind.nextNDays
+      ) {
+        return typeof value.value === "number";
+      }
+
+      if (
+        value.operator === DateOperatorKind.between ||
+        value.operator === DateOperatorKind.notBetween
+      ) {
+        return Array.isArray(value.value) &&
+          value.value.length === 2 &&
+          typeof value.value[0] === "string" &&
+          value.value[0].length > 0 &&
+          typeof value.value[1] === "string" &&
+          value.value[1].length > 0;
+      }
+
+      return typeof value.value === "string" && value.value.length > 0;
+    case FieldKind.multiSelect:
+      return Array.isArray(value.value) && value.value.length > 0;
+    case FieldKind.boolean:
+      return typeof value.value === "boolean";
+    default:
+      return false;
+  }
+}
+
 export function getFieldAllowedOperators<
   FieldId extends string,
   Kind extends EnumFieldKind,
@@ -292,7 +345,7 @@ export function areFilterBarValuesEqual<
   });
 }
 
-export function sanitizeFilterBarValue<
+export function sanitizeFilterBarDraftValue<
   FieldId extends string,
   Kind extends EnumFieldKind,
 >(
@@ -339,6 +392,26 @@ export function sanitizeFilterBarValue<
   } as FilterBarValue<FieldId, Kind>;
 }
 
+export function sanitizeFilterBarValue<
+  FieldId extends string,
+  Kind extends EnumFieldKind,
+>(
+  field: UIFieldForKind<FieldId, Kind>,
+  input: FilterBarValue<FieldId, Kind>,
+): FilterBarValue<FieldId, Kind> | null {
+  const draftValue = sanitizeFilterBarDraftValue(field, input);
+
+  if (!draftValue) {
+    return null;
+  }
+
+  return isMeaningfulFilterBarValue(
+    draftValue as unknown as FilterBarValue<string, EnumFieldKind>,
+  )
+    ? draftValue
+    : null;
+}
+
 export function sanitizeFilterBarValues<
   FieldId extends string,
   Kind extends EnumFieldKind,
@@ -362,6 +435,50 @@ export function sanitizeFilterBarValues<
     }
 
     const sanitizedValue = sanitizeFilterBarValue(
+      field as UIFieldForKind<FieldId, Kind>,
+      entry as FilterBarValue<FieldId, Kind>,
+    );
+
+    if (!sanitizedValue) {
+      continue;
+    }
+
+    const existingIndex = nextValues.findIndex((value) => value.fieldId === sanitizedValue.fieldId);
+
+    if (existingIndex === -1) {
+      nextValues.push(sanitizedValue as FilterBarValueType<FieldId, Kind>[number]);
+      continue;
+    }
+
+    nextValues[existingIndex] = sanitizedValue as FilterBarValueType<FieldId, Kind>[number];
+  }
+
+  return nextValues;
+}
+
+export function sanitizeFilterBarDraftValues<
+  FieldId extends string,
+  Kind extends EnumFieldKind,
+>(
+  fields: FieldDefinition<FieldId, Kind>[] | UIFieldForKind<FieldId, Kind>[],
+  input: ReadonlyArray<FilterBarValue<FieldId, Kind>> | null | undefined,
+): FilterBarValueType<FieldId, Kind> {
+  if (!input?.length) {
+    return [];
+  }
+
+  const uiFields = isUIFieldArray(fields) ? fields : resolveFilterBarFields(fields).uiFields;
+  const fieldMap = new Map(uiFields.map((field) => [field.id, field] as const));
+  const nextValues: FilterBarValueType<FieldId, Kind> = [];
+
+  for (const entry of input) {
+    const field = fieldMap.get(entry.fieldId);
+
+    if (!field) {
+      continue;
+    }
+
+    const sanitizedValue = sanitizeFilterBarDraftValue(
       field as UIFieldForKind<FieldId, Kind>,
       entry as FilterBarValue<FieldId, Kind>,
     );

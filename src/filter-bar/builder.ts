@@ -7,6 +7,7 @@ import {
 import type {
   BooleanKind,
   BooleanOptions,
+  FilterBarSuggestedDisplay,
   MultiSelectValueLabelRenderer,
   SafeParseSchemaResolver,
   SelectKind,
@@ -25,6 +26,8 @@ type BaseFieldBuilderMethod =
   | "icon"
   | "description"
   | "placeholder"
+  | "pin"
+  | "suggest"
   | "operator"
   | "render"
   | "validate"
@@ -80,6 +83,10 @@ export type BaseFieldBuilder<
       placeholder(
         placeholder: NonNullable<UIFieldBase<FieldId, Kind>["placeholder"]>,
       ): BaseFieldBuilder<FieldId, Kind, Used | "placeholder">;
+      pin(): BaseFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
+      suggest(
+        config?: Omit<FilterBarSuggestedDisplay<Kind>, "kind">,
+      ): BaseFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
       operator(
         op: OperatorKindFor<Kind>,
       ): BaseFieldBuilder<FieldId, Kind, Used | "operator">;
@@ -116,6 +123,10 @@ export type SelectFieldBuilder<
       placeholder(
         placeholder: NonNullable<UIFieldBase<FieldId, Kind>["placeholder"]>,
       ): SelectFieldBuilder<FieldId, Kind, Used | "placeholder">;
+      pin(): SelectFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
+      suggest(
+        config?: Omit<FilterBarSuggestedDisplay<Kind>, "kind">,
+      ): SelectFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
       operator(
         op: OperatorKindFor<Kind>,
       ): SelectFieldBuilder<FieldId, Kind, Used | "operator">;
@@ -165,6 +176,10 @@ export type BooleanFieldBuilder<
       placeholder(
         placeholder: NonNullable<UIFieldBase<FieldId, Kind>["placeholder"]>,
       ): BooleanFieldBuilder<FieldId, Kind, Used | "placeholder">;
+      pin(): BooleanFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
+      suggest(
+        config?: Omit<FilterBarSuggestedDisplay<Kind>, "kind">,
+      ): BooleanFieldBuilder<FieldId, Kind, Used | "pin" | "suggest">;
       operator(
         op: OperatorKindFor<Kind>,
       ): BooleanFieldBuilder<FieldId, Kind, Used | "operator">;
@@ -275,6 +290,44 @@ class BuilderBase<
   placeholder(placeholder: NonNullable<UIFieldBase<FieldId, Kind>["placeholder"]>) {
     this.#field.placeholder = placeholder;
     return this;
+  }
+
+  #setDisplay(display: UIFieldBase<FieldId, Kind>["display"]) {
+    const field = this.#field as UIFieldBase<FieldId, Kind>;
+
+    if (!display || display.kind === "default") {
+      delete field.display;
+      return this;
+    }
+
+    field.display = display;
+    return this;
+  }
+
+  pin() {
+    return this.#setDisplay({ kind: "pinned" });
+  }
+
+  suggest(config?: Omit<FilterBarSuggestedDisplay<Kind>, "kind">) {
+    const display: FilterBarSuggestedDisplay<Kind> = {
+      kind: "suggested",
+      removeBehavior: "back-to-suggestion",
+      showInMenu: true,
+    };
+
+    if (config?.seed !== undefined) {
+      display.seed = config.seed;
+    }
+
+    if (config?.removeBehavior !== undefined) {
+      display.removeBehavior = config.removeBehavior;
+    }
+
+    if (config?.showInMenu !== undefined) {
+      display.showInMenu = config.showInMenu;
+    }
+
+    return this.#setDisplay(display);
   }
 
   operator(

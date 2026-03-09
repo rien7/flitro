@@ -10,6 +10,12 @@
 
 当前这份 `default-theme.css` 是预编译后的静态 CSS，可以直接在消费端引入。
 
+这次 display 相关扩展遵循同一条规则：
+
+- 组件层只输出结构、状态和 `data-theme-slot` / `data-area`
+- `pinned` / `suggestion` 的视觉差异放在 preset 的 classNames 和 CSS 选择器里
+- 不把视觉判断重新写回 `FilterBar` 组件逻辑
+
 ## 1. Unstyled 用法
 
 ```tsx
@@ -32,7 +38,7 @@ export function UnstyledExample() {
       <FilterBar.Clear render={<button type="button" />}>
         Clear
       </FilterBar.Clear>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
@@ -56,7 +62,7 @@ export function DefaultThemeExample() {
       <FilterBar.Clear render={<Button variant="outline" />}>
         Clear
       </FilterBar.Clear>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
@@ -78,7 +84,7 @@ import { defaultFilterBarTheme } from "filtro/default-theme";
 
 const compactTheme = mergeFilterBarTheme(defaultFilterBarTheme, {
   classNames: {
-    itemsRoot: "flex flex-wrap gap-2",
+    activeItemsRoot: "flex flex-wrap gap-2",
     row: "h-8",
     rowRemoveButton: "h-full min-h-0 px-2 !border-l text-red-600",
     selectContent: "rounded-md border shadow-lg",
@@ -151,7 +157,10 @@ export function CompactExample() {
 
 目前支持这些 slot：
 
-- `itemsRoot`
+- `contentRoot`
+- `pinnedItemsRoot`
+- `suggestedItemsRoot`
+- `activeItemsRoot`
 - `emptyState`
 - `rowRoot`
 - `row`
@@ -192,6 +201,17 @@ export function CompactExample() {
 - `editorSplit`
 - `booleanTrueButton`
 - `booleanFalseButton`
+
+其中新增的 display 相关 slot 分别对应：
+
+- `contentRoot`
+  - `FilterBar.Content` 的外层容器
+- `pinnedItemsRoot`
+  - `FilterBar.PinnedItems` 的外层容器
+- `suggestedItemsRoot`
+  - `FilterBar.SuggestedItems` 的外层容器
+- `activeItemsRoot`
+  - `FilterBar.ActiveItems` 的外层容器
 
 ## 5. 什么时候需要 `default-theme.css`
 

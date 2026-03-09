@@ -106,7 +106,7 @@ export function Filters() {
         <FilterBar.Clear render={<button type="button" />}>
           Clear
         </FilterBar.Clear>
-        <FilterBar.Items />
+        <FilterBar.ActiveItems />
       </FilterBar.Root>
 
       <div className="flex gap-2">
@@ -241,7 +241,7 @@ export function UrlBackedFilters() {
       <FilterBar.Clear render={<button type="button" />}>
         Clear
       </FilterBar.Clear>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }

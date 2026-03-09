@@ -20,6 +20,7 @@ import { SelectSearchInput, SelectSeparator } from "@/filter-bar/internal/primit
 import { type FilterBarValueType, useFilterBar } from "@/filter-bar/context";
 import { SelectOptionLabel } from "@/filter-bar/select-option-content";
 import { useSelectableFieldOptions } from "@/filter-bar/select-options";
+import { shouldShowFieldInTrigger } from "@/filter-bar/display";
 import {
   createFilterBarValue,
   getFilterBarValueCompleteness,
@@ -285,7 +286,16 @@ export function FilterBarTrigger({
 }: MenuTrigger.Props & {
   iconMapping: Partial<Record<EnumFieldKind, ReactNode>> | boolean;
 }) {
-  const { activeView, changeValues, clearActiveView, uiFieldEntries, values } = useFilterBar();
+  const {
+    activeView,
+    changeDismissedSuggestionFieldIds,
+    changeDraftValues,
+    changeValues,
+    clearActiveView,
+    draftValues,
+    uiFieldEntries,
+    values,
+  } = useFilterBar();
   const theme = useFilterBarTheme();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -294,13 +304,18 @@ export function FilterBarTrigger({
   const normalizedQuery = deferredQuery.trim().toLowerCase();
   const allowActiveFields = activeView !== null;
   const availableEntries = useMemo(() => {
-    const activeFieldIds = new Set(values.map((value) => value.fieldId));
+    const activeFieldIds = new Set([
+      ...values.map((value) => value.fieldId),
+      ...draftValues.map((value) => value.fieldId),
+    ]);
     const nextEntries: UIFieldEntry[] = [];
 
     for (const entry of uiFieldEntries) {
       if ("fields" in entry) {
         const availableFields = entry.fields.filter(
-          (uiField) => allowActiveFields || !activeFieldIds.has(uiField.id),
+          (uiField) =>
+            shouldShowFieldInTrigger(uiField) &&
+            (allowActiveFields || !activeFieldIds.has(uiField.id)),
         );
         if (availableFields.length === 0) {
           continue;
@@ -326,6 +341,7 @@ export function FilterBarTrigger({
       }
 
       if (
+        !shouldShowFieldInTrigger(entry) ||
         (!allowActiveFields && activeFieldIds.has(entry.id)) ||
         !matchesFieldQuery(entry, normalizedQuery)
       ) {
@@ -342,13 +358,16 @@ export function FilterBarTrigger({
     field: SelectUIField<FieldId, Kind>,
     value: string,
   ) => {
-    const nextValue = createFilterBarValue(field, value);
+    const nextValue = createFilterBarValue(field as never, { value } as never);
 
     if (!nextValue) {
       return;
     }
 
     clearActiveView?.();
+    changeDismissedSuggestionFieldIds?.((previous) =>
+      previous.filter((fieldId) => fieldId !== field.id),
+    );
     changeValues?.(
       (prev) => upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
       {
@@ -371,6 +390,17 @@ export function FilterBarTrigger({
     }
 
     clearActiveView?.();
+    changeDismissedSuggestionFieldIds?.((previous) =>
+      previous.filter((fieldId) => fieldId !== uiField.id),
+    );
+
+    if (getFilterBarValueCompleteness(nextValue as never) === "incomplete") {
+      changeDraftValues?.((previous) =>
+        upsertFilterBarValue(previous, nextValue as unknown as FilterBarValueType[number]),
+      );
+      return;
+    }
+
     changeValues?.(
       (prev) => upsertFilterBarValue(prev, nextValue as unknown as FilterBarValueType[number]),
       {

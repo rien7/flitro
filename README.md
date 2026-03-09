@@ -71,7 +71,7 @@ export function UnstyledExample() {
           Clear
         </FilterBar.Clear>
       </div>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
@@ -123,7 +123,7 @@ export function StyledExample() {
           Clear
         </FilterBar.Clear>
       </div>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
@@ -141,6 +141,8 @@ export function StyledExample() {
 - Custom field value editors via `.render(...)`
 - Field-level validation via `.validate(...)`
 - Schema-style validation via `.zod(...)`
+- Field display metadata with `.pin()` and `.suggest()`
+- Optional `FilterBar.Content` regions for pinned, active, and suggested items
 - Static select options
 - Async option loading with request cancellation and caching
 - Custom option sources via `.useOptions(...)`
@@ -172,7 +174,7 @@ This layer contains:
 
 - builder API
 - UI field types
-- `FilterBar.Root / Trigger / Items / Clear / SaveView / Views`
+- `FilterBar.Root / Trigger / Content / ActiveItems / PinnedItems / SuggestedItems / Clear / SaveView / Views`
 - current flat condition state model
 - theme slot contract and helpers
 - internal Base UI-backed primitives used by the implementation
@@ -239,6 +241,8 @@ Common builder methods:
 - `.icon()`
 - `.description()`
 - `.placeholder()`
+- `.pin()`
+- `.suggest()`
 - `.operator()`
 - `.render()`
 - `.validate()`
@@ -260,6 +264,61 @@ Boolean extras:
 
 - `.options()`
 
+## Field Display
+
+Fields can stay in the trigger menu by default, render as a persistent pinned row, or render as a suggestion entry.
+
+```tsx
+const fields = [
+  filtro.select("status")
+    .label("Status")
+    .pin()
+    .options([
+      { label: "Open", value: "open" },
+      { label: "Closed", value: "closed" },
+    ]),
+  filtro.string("keyword")
+    .label("Keyword")
+    .suggest({
+      seed: {
+        operator: "contains",
+        value: "",
+      },
+    }),
+];
+
+<FilterBar.Root fields={fields}>
+  <div className="toolbar">
+    <FilterBar.Trigger render={<button type="button" />}>
+      Add Filter
+    </FilterBar.Trigger>
+    <FilterBar.Clear render={<button type="button" />}>
+      Clear
+    </FilterBar.Clear>
+  </div>
+  <FilterBar.Content>
+    <FilterBar.PinnedItems />
+    <FilterBar.ActiveItems />
+    <FilterBar.SuggestedItems />
+  </FilterBar.Content>
+</FilterBar.Root>
+```
+
+Behavior:
+
+- `default`: only shown through `FilterBar.Trigger`
+- `pinned`: always rendered by `FilterBar.PinnedItems`, even when no active value exists
+- `suggested`: rendered by `FilterBar.SuggestedItems` until it is clicked
+
+If a field uses `.pin()`, render `FilterBar.PinnedItems`. If a suggestion uses `showInMenu: false`, render `FilterBar.SuggestedItems`, or that field may not be visible anywhere.
+
+`FilterBarValue[]` still only stores active conditions. Empty values are automatically removed from active state:
+
+- `string`: `""` is treated as absent
+- `multiSelect`: `[]` is treated as absent
+- other field kinds: `null` is treated as absent
+- empty operators such as `isEmpty` remain valid active conditions
+
 ## Current State Model
 
 `FilterBar` currently stores flat values as `FilterBarValue[]`.
@@ -274,6 +333,8 @@ Important constraints:
 The helper exports around this model include:
 
 - `resolveFilterBarFields`
+- `sanitizeFilterBarDraftValue`
+- `sanitizeFilterBarDraftValues`
 - `sanitizeFilterBarValue`
 - `sanitizeFilterBarValues`
 - `serializeFilterBarValue`
@@ -299,7 +360,7 @@ const [value, setValue] = useState<FilterBarValueType>([]);
   <FilterBar.Clear render={<button type="button" />}>
     Clear
   </FilterBar.Clear>
-  <FilterBar.Items />
+  <FilterBar.ActiveItems />
 </FilterBar.Root>
 ```
 
@@ -322,7 +383,7 @@ const filters = useFilterBarController({
   <FilterBar.Clear render={<button type="button" />}>
     Clear
   </FilterBar.Clear>
-  <FilterBar.Items />
+  <FilterBar.ActiveItems />
 </FilterBar.Root>
 
 <button type="button" onClick={filters.apply} disabled={!filters.isDirty}>
@@ -400,11 +461,9 @@ The playground imports the source tree directly, so it is the fastest way to ins
 
 - [`docs/filter-bar-controller.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-controller.md)
 - [`docs/filter-bar-nuqs.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-nuqs.md)
+- [`docs/filter-bar-display.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-display.md)
 - [`docs/filter-bar-render.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-render.md)
 - [`docs/filter-bar-validation.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-validation.md)
 - [`docs/filter-bar-styling.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-styling.md)
 - [`docs/filter-bar-views.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-views.md)
 - [`docs/filter-bar-options.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-options.md)
-- [`docs/filter-bar-validation.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-validation.md)
-- [`docs/filter-bar-render.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-render.md)
-- [`docs/filter-bar-nuqs.md`](https://github.com/rien7/filtro/blob/main/docs/filter-bar-nuqs.md)

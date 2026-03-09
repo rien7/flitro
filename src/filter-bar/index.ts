@@ -1,5 +1,8 @@
 import { FilterBarRoot } from "./root";
-import { FilterItems } from "./items";
+import { FilterBarActiveItems } from "./items";
+import { FilterBarPinnedItems } from "./pins";
+import { FilterBarSuggestedItems } from "./suggestions";
+import { FilterBarContent } from "./content";
 import { FilterBarTrigger } from "./trigger";
 import { FilterBarClear } from "./clear";
 import { useFilterBarController } from "./controller";
@@ -9,7 +12,10 @@ import { FilterBarViews } from "./views";
 
 export const FilterBar = Object.assign({}, {
   Root: FilterBarRoot,
-  Items: FilterItems,
+  Content: FilterBarContent,
+  PinnedItems: FilterBarPinnedItems,
+  SuggestedItems: FilterBarSuggestedItems,
+  ActiveItems: FilterBarActiveItems,
   Trigger: FilterBarTrigger,
   Clear: FilterBarClear,
   SaveView: FilterBarSaveView,
@@ -31,7 +37,10 @@ export {
 export { groupField, type FieldGroup } from "./group";
 export * from "./types";
 export { FilterBarRoot } from "./root";
-export { FilterItems } from "./items";
+export { FilterBarContent } from "./content";
+export { FilterBarPinnedItems } from "./pins";
+export { FilterBarSuggestedItems } from "./suggestions";
+export { FilterBarActiveItems } from "./items";
 export { FilterBarTrigger } from "./trigger";
 export { FilterBarSaveView } from "./save-view";
 export { FilterBarViews } from "./views";
@@ -78,6 +87,8 @@ export {
   isEmptyOperator,
   isFilterBarValueEqual,
   resolveFilterBarFields,
+  sanitizeFilterBarDraftValue,
+  sanitizeFilterBarDraftValues,
   sanitizeFilterBarValue,
   sanitizeFilterBarValues,
   serializeFilterBarValue,

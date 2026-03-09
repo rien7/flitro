@@ -19,8 +19,10 @@ import {
 import {
   areFilterBarValuesEqual,
   resolveFilterBarFields,
+  sanitizeFilterBarDraftValues,
   sanitizeFilterBarValues,
 } from "@/filter-bar/value";
+import { isSuggestedField } from "@/filter-bar/placement";
 import {
   FilterBarThemeProvider,
   type FilterBarThemeInput,
@@ -184,6 +186,7 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
   const [uncontrolledValues, setUncontrolledValues] = useState<FilterBarValueType<FieldId, Kind>>(
     () => sanitizeFilterBarValues(uiFields, defaultValue ?? []),
   );
+  const [draftValues, setDraftValues] = useState<FilterBarValueType<FieldId, Kind>>([]);
   const isControlled = value !== undefined;
   const controlledValues = useMemo(
     () => sanitizeFilterBarValues(uiFields, value ?? []),
@@ -197,6 +200,7 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
   const [savedViews, setSavedViews] = useState<FilterBarSavedViewType<FieldId, Kind>>([]);
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [pendingViewId, setPendingViewId] = useState<string | null>(null);
+  const [dismissedSuggestionFieldIds, setDismissedSuggestionFieldIds] = useState<FieldId[]>([]);
 
   useEffect(() => {
     if (isControlled) {
@@ -210,6 +214,19 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
   }, [isControlled, uiFields]);
 
   useEffect(() => {
+    setDraftValues((previous) => {
+      const activeFieldIds = new Set(values.map((entry) => entry.fieldId));
+      const sanitizedValues = sanitizeFilterBarDraftValues(uiFields, previous).filter(
+        (entry) => !activeFieldIds.has(entry.fieldId),
+      ) as FilterBarValueType<FieldId, Kind>;
+
+      return areFilterBarValuesEqual(previous, sanitizedValues)
+        ? previous
+        : sanitizedValues;
+    });
+  }, [uiFields, values]);
+
+  useEffect(() => {
     const nextViews = readSavedViews(storageKey, uiFields);
 
     setSavedViews(nextViews);
@@ -220,6 +237,19 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
   useEffect(() => {
     persistSavedViews(storageKey, savedViews);
   }, [savedViews, storageKey]);
+
+  useEffect(() => {
+    const suggestionFieldIds = new Set(
+      uiFields
+        .filter((field) => isSuggestedField(field))
+        .map((field) => field.id),
+    );
+
+    setDismissedSuggestionFieldIds((previous) => {
+      const nextFieldIds = previous.filter((fieldId) => suggestionFieldIds.has(fieldId));
+      return previous.length === nextFieldIds.length ? previous : nextFieldIds;
+    });
+  }, [uiFields]);
 
   const activeView = useMemo(
     () => savedViews.find((viewEntry) => viewEntry.id === activeViewId) ?? null,
@@ -299,6 +329,21 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
     [updateValues],
   );
 
+  const changeDraftValues = useCallback(
+    (nextState: SetStateAction<FilterBarValueType<FieldId, Kind>>) => {
+      setDraftValues((previous) => {
+        const resolvedValue =
+          typeof nextState === "function" ? nextState(previous) : nextState;
+        const sanitizedValues = sanitizeFilterBarDraftValues(uiFields, resolvedValue);
+
+        return areFilterBarValuesEqual(previous, sanitizedValues)
+          ? previous
+          : sanitizedValues;
+      });
+    },
+    [uiFields],
+  );
+
   const saveView = useCallback((name: string) => {
     const trimmedName = name.trim();
     const sanitizedValues = sanitizeFilterBarValues(uiFields, values);
@@ -350,9 +395,13 @@ export function FilterBarRoot<FieldId extends string, Kind extends EnumFieldKind
           uiFieldEntries,
           uiFields,
           values,
+          draftValues,
           savedViews,
           activeView,
+          dismissedSuggestionFieldIds,
           changeValues,
+          changeDraftValues,
+          changeDismissedSuggestionFieldIds: setDismissedSuggestionFieldIds,
           saveView,
           applyView,
           deleteView,

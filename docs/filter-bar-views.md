@@ -46,7 +46,7 @@ export function FilterBarWithViews() {
           Clear
         </FilterBar.Clear>
       </div>
-      <FilterBar.Items />
+      <FilterBar.ActiveItems />
     </FilterBar.Root>
   );
 }
