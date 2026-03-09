@@ -31,3 +31,7 @@ export const OPERATOR_LABELS: Record<string, string> = {
   [EmptyOperatorKind.isEmpty]: "Is empty",
   [EmptyOperatorKind.isNotEmpty]: "Is not empty",
 };
+
+export function getOperatorLabel(operator: string) {
+  return OPERATOR_LABELS[operator] ?? operator;
+}

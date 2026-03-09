@@ -5,7 +5,6 @@ import { type OperatorKindFor } from "@/logical/operator";
 import { Button } from "@/filter-bar/internal/primitives/baseui/button";
 import {
   ButtonGroup,
-  ButtonGroupText,
 } from "@/filter-bar/internal/primitives/baseui/button-group";
 import {
   Select,
@@ -25,7 +24,12 @@ import { getFieldAllowedOperators, hasFieldFixedOperator } from "@/filter-bar/va
 import { cn } from "@/lib/utils";
 import type { UIFieldForKind } from "@/filter-bar/types";
 
-import { OPERATOR_LABELS } from "./items.constants";
+import { getOperatorLabel } from "./items.constants";
+import {
+  FilterItemFieldSegment,
+  FilterItemOperatorTextSegment,
+  FilterItemValueSegment,
+} from "./items.parts";
 import { FilterValueEditor } from "./items.value-editor";
 
 export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind>({
@@ -63,32 +67,27 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
 
   return (
     <div
+      data-removable={removable}
+      data-has-locked-operator={hasLockedOperator}
+      data-hides-value-editor={hidesValueEditor}
       data-theme-slot={filterBarThemeSlot("rowRoot")}
       data-area={area}
       className={theme.classNames.rowRoot}
     >
       <ButtonGroup
+        data-removable={removable}
+        data-has-locked-operator={hasLockedOperator}
+        data-hides-value-editor={hidesValueEditor}
         data-theme-slot={filterBarThemeSlot("row")}
         data-area={area}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.row}
       >
-        <ButtonGroupText
-          data-theme-slot={filterBarThemeSlot("rowField")}
-          unstyled={theme.unstyledPrimitives}
-          className={cn(
-            theme.classNames.rowField,
-            hasLockedOperator ? "border-r" : null,
-            shouldRoundFieldRight ? "rounded-r-md" : null,
-          )}
-        >
-          <span
-            data-theme-slot={filterBarThemeSlot("rowFieldText")}
-            className={theme.classNames.rowFieldText}
-          >
-            {field.label ?? field.id}
-          </span>
-        </ButtonGroupText>
+        <FilterItemFieldSegment
+          area={area}
+          field={field}
+          showTrailingBorder={hasLockedOperator}
+          roundRight={shouldRoundFieldRight}
+        />
 
         {hasMultipleOperators ? (
           <Select<string>
@@ -117,22 +116,20 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
             }}
           >
             <SelectTrigger
+              data-area={area}
+              data-round-right={shouldRoundOperatorRight}
               data-theme-slot={filterBarThemeSlot("selectTrigger", "rowOperatorTrigger")}
-              unstyled={theme.unstyledPrimitives}
               className={cn(
                 theme.classNames.selectTrigger,
                 theme.classNames.rowOperatorTrigger,
-                shouldRoundOperatorRight ? "rounded-r-md border-r" : null,
               )}
-              render={<Button unstyled={theme.unstyledPrimitives} variant="outline" />}
             >
               <SelectValue>
-                {(value) => OPERATOR_LABELS[String(value)] ?? String(value ?? "")}
+                {(value) => getOperatorLabel(String(value ?? ""))}
               </SelectValue>
             </SelectTrigger>
             <SelectContent
               data-theme-slot={filterBarThemeSlot("selectContent")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.selectContent}
             >
               {allowedOperators.map((operator) => (
@@ -140,37 +137,23 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
                   key={operator}
                   value={operator}
                   data-theme-slot={filterBarThemeSlot("selectItem")}
-                  unstyled={theme.unstyledPrimitives}
                   className={theme.classNames.selectItem}
                 >
-                  {OPERATOR_LABELS[operator] ?? operator}
+                  {getOperatorLabel(operator)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : hasLockedOperator ? null : (
-          <ButtonGroupText
-            data-theme-slot={filterBarThemeSlot("rowOperatorText")}
-            unstyled={theme.unstyledPrimitives}
-            className={cn(
-              theme.classNames.rowOperatorText,
-              shouldRoundOperatorRight ? "rounded-r-md border-r" : null,
-            )}
-          >
-            <span>{OPERATOR_LABELS[item.operator] ?? item.operator}</span>
-          </ButtonGroupText>
+          <FilterItemOperatorTextSegment
+            area={area}
+            operator={item.operator}
+            roundRight={shouldRoundOperatorRight}
+          />
         )}
 
         {isEmptyOperator(item.operator) ? null : (
-          <div
-            data-slot="button-group-text"
-            data-theme-slot={filterBarThemeSlot("rowValue")}
-            data-area={area}
-            className={cn(
-              theme.classNames.rowValue,
-              shouldRoundValueRight ? "border-r rounded-r-md" : null,
-            )}
-          >
+          <FilterItemValueSegment area={area} roundRight={shouldRoundValueRight}>
             <FilterValueEditor
               field={field}
               item={item}
@@ -194,16 +177,13 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
               onValidationChange={setValidationMessage}
               errorDescriptionId={errorId}
             />
-          </div>
+          </FilterItemValueSegment>
         )}
 
         {removable ? (
           <Button
             data-theme-slot={filterBarThemeSlot("rowRemoveButton")}
             data-area={area}
-            unstyled={theme.unstyledPrimitives}
-            variant="outline"
-            size="lg"
             aria-label={`Remove ${field.label ?? field.id} filter`}
             onClick={onRemove}
             className={theme.classNames.rowRemoveButton}

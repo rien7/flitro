@@ -215,7 +215,6 @@ export function DateValueEditor<FieldId extends string>({
         >
           <Input
             data-theme-slot={filterBarThemeSlot("editorControl")}
-            unstyled={theme.unstyledPrimitives}
             className={theme.classNames.editorControl}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorDescriptionId : undefined}
@@ -248,7 +247,6 @@ export function DateValueEditor<FieldId extends string>({
           >
             <Input
               data-theme-slot={filterBarThemeSlot("editorControl")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.editorControl}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? errorDescriptionId : undefined}
@@ -258,7 +256,6 @@ export function DateValueEditor<FieldId extends string>({
             />
             <Input
               data-theme-slot={filterBarThemeSlot("editorControl")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.editorControl}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? errorDescriptionId : undefined}
@@ -283,7 +280,6 @@ export function DateValueEditor<FieldId extends string>({
       >
         <Input
           data-theme-slot={filterBarThemeSlot("editorControl")}
-          unstyled={theme.unstyledPrimitives}
           className={theme.classNames.editorControl}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorDescriptionId : undefined}

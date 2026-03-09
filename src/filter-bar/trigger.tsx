@@ -112,7 +112,6 @@ function renderSelectOption<FieldId extends string, Kind extends SelectKind>({
         key={keyPath}
         onClick={() => onSelect(field, option.value)}
         data-theme-slot={filterBarThemeSlot("triggerFieldItem")}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.triggerFieldItem}
       >
         <SelectOptionLabel option={option} />
@@ -124,7 +123,6 @@ function renderSelectOption<FieldId extends string, Kind extends SelectKind>({
     <DropdownMenuSub key={keyPath}>
       <DropdownMenuSubTrigger
         data-theme-slot={filterBarThemeSlot("triggerSubmenuTrigger")}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.triggerSubmenuTrigger}
       >
         <SelectOptionLabel option={option} />
@@ -132,7 +130,6 @@ function renderSelectOption<FieldId extends string, Kind extends SelectKind>({
       <DropdownMenuPortal>
         <DropdownMenuSubContent
           data-theme-slot={filterBarThemeSlot("triggerSubmenuContent")}
-          unstyled={theme.unstyledPrimitives}
           className={theme.classNames.triggerSubmenuContent}
         >
           {option.children?.map((child, index) =>
@@ -175,7 +172,6 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
     <DropdownMenuSub key={field.id} open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuSubTrigger
         data-theme-slot={filterBarThemeSlot("triggerSubmenuTrigger")}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.triggerSubmenuTrigger}
       >
         {renderFieldIcon(field, resolvedIconMapping)}
@@ -184,14 +180,12 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
       <DropdownMenuPortal>
         <DropdownMenuSubContent
           data-theme-slot={filterBarThemeSlot("triggerSubmenuContent")}
-          unstyled={theme.unstyledPrimitives}
           className={theme.classNames.triggerSubmenuContent}
         >
           {isSearchEnabled ? (
             <>
               <SelectSearchInput
                 data-theme-slot={filterBarThemeSlot("selectSearchInput")}
-                unstyled={theme.unstyledPrimitives}
                 value={query}
                 className={theme.classNames.selectSearchInput}
                 placeholder={theme.texts.searchOptionsPlaceholder}
@@ -200,7 +194,6 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
               />
               <SelectSeparator
                 data-theme-slot={filterBarThemeSlot("selectSeparator")}
-                unstyled={theme.unstyledPrimitives}
                 className={theme.classNames.selectSeparator}
               />
             </>
@@ -209,7 +202,6 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
             <DropdownMenuItem
               disabled
               data-theme-slot={filterBarThemeSlot("triggerEmptyItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.triggerEmptyItem}
             >
               {theme.texts.loadingOptions}
@@ -218,7 +210,6 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
             <DropdownMenuItem
               disabled
               data-theme-slot={filterBarThemeSlot("triggerEmptyItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.triggerEmptyItem}
             >
               {error?.message ?? theme.texts.failedToLoadOptions}
@@ -237,7 +228,6 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
             <DropdownMenuItem
               disabled
               data-theme-slot={filterBarThemeSlot("triggerEmptyItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.triggerEmptyItem}
             >
               {theme.texts.noOptions}
@@ -270,7 +260,6 @@ function renderFieldEntry<FieldId extends string, Kind extends EnumFieldKind>(
       key={uiField.id}
       onClick={() => handleSelectValue(uiField)}
       data-theme-slot={filterBarThemeSlot("triggerFieldItem")}
-      unstyled={theme.unstyledPrimitives}
       className={theme.classNames.triggerFieldItem}
     >
       {renderFieldIcon(uiField, resolvedIconMapping)}
@@ -424,12 +413,10 @@ export function FilterBarTrigger({
       <DropdownMenuTrigger {...props}>{children}</DropdownMenuTrigger>
       <DropdownMenuContent
         data-theme-slot={filterBarThemeSlot("triggerMenuContent")}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.triggerMenuContent}
       >
         <SelectSearchInput
           data-theme-slot={filterBarThemeSlot("selectSearchInput")}
-          unstyled={theme.unstyledPrimitives}
           value={query}
           className={theme.classNames.selectSearchInput}
           placeholder={theme.texts.searchFieldsPlaceholder}
@@ -438,7 +425,6 @@ export function FilterBarTrigger({
         />
         <SelectSeparator
           data-theme-slot={filterBarThemeSlot("triggerMenuSeparator")}
-          unstyled={theme.unstyledPrimitives}
           className={theme.classNames.triggerMenuSeparator}
         />
         {availableEntries.map((entry, index) => (
@@ -446,7 +432,6 @@ export function FilterBarTrigger({
             {index > 0 ? (
               <DropdownMenuSeparator
                 data-theme-slot={filterBarThemeSlot("triggerMenuSeparator")}
-                unstyled={theme.unstyledPrimitives}
                 className={theme.classNames.triggerMenuSeparator}
               />
             ) : null}
@@ -454,7 +439,6 @@ export function FilterBarTrigger({
               <DropdownMenuGroup>
                 <DropdownMenuLabel
                   data-theme-slot={filterBarThemeSlot("triggerGroupLabel")}
-                  unstyled={theme.unstyledPrimitives}
                   className={theme.classNames.triggerGroupLabel}
                 >
                   {entry.label}
@@ -484,7 +468,6 @@ export function FilterBarTrigger({
           <DropdownMenuItem
             disabled
             data-theme-slot={filterBarThemeSlot("triggerEmptyItem")}
-            unstyled={theme.unstyledPrimitives}
             className={theme.classNames.triggerEmptyItem}
           >
             {theme.texts.noMatchingFields}

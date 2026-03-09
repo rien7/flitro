@@ -22,9 +22,7 @@ export function BooleanValueEditor<FieldId extends string>({
       >
         <Button
           data-theme-slot={filterBarThemeSlot("booleanTrueButton")}
-          unstyled={theme.unstyledPrimitives}
           type="button"
-          variant={item.value === true ? "secondary" : "ghost"}
           className={theme.classNames.booleanTrueButton}
           aria-pressed={item.value === true}
           onClick={() => onChange(true, { valueChangeKind: "selected" })}
@@ -33,9 +31,7 @@ export function BooleanValueEditor<FieldId extends string>({
         </Button>
         <Button
           data-theme-slot={filterBarThemeSlot("booleanFalseButton")}
-          unstyled={theme.unstyledPrimitives}
           type="button"
-          variant={item.value === false ? "secondary" : "ghost"}
           className={theme.classNames.booleanFalseButton}
           aria-pressed={item.value === false}
           onClick={() => onChange(false, { valueChangeKind: "selected" })}

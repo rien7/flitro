@@ -7,12 +7,14 @@ import {
 } from "react";
 
 import type { EnumFieldKind } from "@/logical/field";
+import { cn } from "@/lib/utils";
 
 export type FilterBarThemeClassNameSlot =
   | "contentRoot"
   | "pinnedItemsRoot"
   | "suggestedItemsRoot"
   | "suggestionButton"
+  | "suggestionAdd"
   | "activeItemsRoot"
   | "emptyState"
   | "rowRoot"
@@ -55,6 +57,69 @@ export type FilterBarThemeClassNameSlot =
   | "booleanTrueButton"
   | "booleanFalseButton";
 
+export type FilterBarPrimitiveClassNameSlot =
+  | "button"
+  | "input"
+  | "selectPositioner"
+  | "selectTrigger"
+  | "selectTriggerText"
+  | "selectIcon"
+  | "selectContent"
+  | "selectItem"
+  | "selectItemIndicator"
+  | "selectSearchInput"
+  | "selectSeparator"
+  | "dropdownMenuPositioner"
+  | "dropdownMenuContent"
+  | "dropdownMenuLabel"
+  | "dropdownMenuItem"
+  | "dropdownMenuSubTrigger"
+  | "dropdownMenuSubmenuIndicator"
+  | "dropdownMenuSubContent"
+  | "dropdownMenuCheckboxItem"
+  | "dropdownMenuCheckboxItemIndicator"
+  | "dropdownMenuRadioItem"
+  | "dropdownMenuRadioItemIndicator"
+  | "dropdownMenuSeparator"
+  | "separator"
+  | "switch"
+  | "switchThumb"
+  | "buttonGroup"
+  | "buttonGroupText"
+  | "buttonGroupSeparator";
+
+const primitiveDataSlots = {
+  button: "button",
+  input: "input",
+  selectPositioner: "select-positioner",
+  selectTrigger: "select-trigger",
+  selectTriggerText: "select-trigger-text",
+  selectIcon: "select-icon",
+  selectContent: "select-content",
+  selectItem: "select-item",
+  selectItemIndicator: "select-item-indicator",
+  selectSearchInput: "select-search-input",
+  selectSeparator: "select-separator",
+  dropdownMenuPositioner: "dropdown-menu-positioner",
+  dropdownMenuContent: "dropdown-menu-content",
+  dropdownMenuLabel: "dropdown-menu-label",
+  dropdownMenuItem: "dropdown-menu-item",
+  dropdownMenuSubTrigger: "dropdown-menu-sub-trigger",
+  dropdownMenuSubmenuIndicator: "dropdown-menu-submenu-indicator",
+  dropdownMenuSubContent: "dropdown-menu-sub-content",
+  dropdownMenuCheckboxItem: "dropdown-menu-checkbox-item",
+  dropdownMenuCheckboxItemIndicator: "dropdown-menu-checkbox-item-indicator",
+  dropdownMenuRadioItem: "dropdown-menu-radio-item",
+  dropdownMenuRadioItemIndicator: "dropdown-menu-radio-item-indicator",
+  dropdownMenuSeparator: "dropdown-menu-separator",
+  separator: "separator",
+  switch: "switch",
+  switchThumb: "switch-thumb",
+  buttonGroup: "button-group",
+  buttonGroupText: "button-group-text",
+  buttonGroupSeparator: "button-group-separator",
+} satisfies Record<FilterBarPrimitiveClassNameSlot, string>;
+
 export interface FilterBarThemeTexts {
   emptyState: string;
   searchFieldsPlaceholder: string;
@@ -81,8 +146,8 @@ export interface FilterBarThemeIcons {
 }
 
 export interface FilterBarTheme {
-  unstyledPrimitives: boolean;
   classNames: Partial<Record<FilterBarThemeClassNameSlot, string>>;
+  primitiveClassNames: Partial<Record<FilterBarPrimitiveClassNameSlot, string>>;
   texts: FilterBarThemeTexts;
   icons: FilterBarThemeIcons;
 }
@@ -91,6 +156,7 @@ export type FilterBarThemeInput = Partial<
   Omit<FilterBarTheme, "texts" | "icons" | "classNames">
 > & {
   classNames?: Partial<Record<FilterBarThemeClassNameSlot, string>>;
+  primitiveClassNames?: Partial<Record<FilterBarPrimitiveClassNameSlot, string>>;
   texts?: Partial<FilterBarThemeTexts>;
   icons?: Partial<FilterBarThemeIcons> & {
     fieldKinds?: Partial<Record<EnumFieldKind, ReactNode>>;
@@ -118,13 +184,34 @@ const defaultTexts: FilterBarThemeTexts = {
 };
 
 export const headlessFilterBarTheme: FilterBarTheme = {
-  unstyledPrimitives: true,
   classNames: {},
+  primitiveClassNames: {},
   texts: defaultTexts,
   icons: {
     fieldKinds: {},
   },
 };
+
+function mergeClassNameSlots<Slot extends string>(
+  baseClassNames: Partial<Record<Slot, string>>,
+  overrideClassNames?: Partial<Record<Slot, string>>,
+) {
+  if (!overrideClassNames) {
+    return baseClassNames;
+  }
+
+  const mergedClassNames: Partial<Record<Slot, string>> = {
+    ...baseClassNames,
+  };
+
+  for (const [slot, className] of Object.entries(overrideClassNames) as Array<
+    [Slot, string | undefined]
+  >) {
+    mergedClassNames[slot] = cn(baseClassNames[slot], className);
+  }
+
+  return mergedClassNames;
+}
 
 export function mergeFilterBarTheme(
   baseTheme: FilterBarTheme,
@@ -135,12 +222,14 @@ export function mergeFilterBarTheme(
   }
 
   return {
-    unstyledPrimitives:
-      overrideTheme.unstyledPrimitives ?? baseTheme.unstyledPrimitives,
-    classNames: {
-      ...baseTheme.classNames,
-      ...overrideTheme.classNames,
-    },
+    classNames: mergeClassNameSlots(
+      baseTheme.classNames,
+      overrideTheme.classNames,
+    ),
+    primitiveClassNames: mergeClassNameSlots(
+      baseTheme.primitiveClassNames,
+      overrideTheme.primitiveClassNames,
+    ),
     texts: {
       ...baseTheme.texts,
       ...overrideTheme.texts,
@@ -162,6 +251,12 @@ export function filterBarThemeSlot(
   return slots
     .filter((slot): slot is FilterBarThemeClassNameSlot => Boolean(slot))
     .join(" ");
+}
+
+export function getFilterBarPrimitiveDataSlot(
+  slot: FilterBarPrimitiveClassNameSlot,
+) {
+  return primitiveDataSlots[slot];
 }
 
 const FilterBarThemeContext = createContext<FilterBarTheme>(headlessFilterBarTheme);
@@ -187,4 +282,24 @@ export function FilterBarThemeProvider({
 
 export function useFilterBarTheme() {
   return useContext(FilterBarThemeContext);
+}
+
+export function useFilterBarPrimitiveClassName(
+  slot: FilterBarPrimitiveClassNameSlot,
+): string;
+export function useFilterBarPrimitiveClassName<State>(
+  slot: FilterBarPrimitiveClassNameSlot,
+  className: string | null | false | undefined | ((state: State) => string | undefined),
+): string | ((state: State) => string | undefined);
+export function useFilterBarPrimitiveClassName<State>(
+  slot: FilterBarPrimitiveClassNameSlot,
+  className?: string | null | false | ((state: State) => string | undefined),
+) {
+  const theme = useFilterBarTheme();
+
+  if (typeof className === "function") {
+    return (state: State) => cn(theme.primitiveClassNames[slot], className(state));
+  }
+
+  return cn(theme.primitiveClassNames[slot], className);
 }

@@ -47,7 +47,6 @@ export function FilterBarSaveView({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         data-theme-slot={filterBarThemeSlot("saveViewContent")}
-        unstyled={theme.unstyledPrimitives}
         className={theme.classNames.saveViewContent}
       >
         <form
@@ -60,7 +59,6 @@ export function FilterBarSaveView({
           <Input
             autoFocus
             data-theme-slot={filterBarThemeSlot("saveViewInput")}
-            unstyled={theme.unstyledPrimitives}
             className={theme.classNames.saveViewInput}
             value={name}
             placeholder={theme.texts.saveViewNamePlaceholder}
@@ -69,9 +67,7 @@ export function FilterBarSaveView({
           />
           <Button
             type="submit"
-            variant="outline"
             data-theme-slot={filterBarThemeSlot("saveViewSubmit")}
-            unstyled={theme.unstyledPrimitives}
             className={theme.classNames.saveViewSubmit}
             disabled={name.trim().length === 0}
           >

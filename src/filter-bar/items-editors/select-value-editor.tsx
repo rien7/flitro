@@ -53,7 +53,6 @@ export function SelectValueEditor<FieldId extends string>({
       >
         <SelectTrigger
           data-theme-slot={filterBarThemeSlot("selectTrigger", "editorControl")}
-          unstyled={theme.unstyledPrimitives}
           className={cn(
             theme.classNames.selectTrigger,
             theme.classNames.editorControl,
@@ -72,14 +71,12 @@ export function SelectValueEditor<FieldId extends string>({
         </SelectTrigger>
         <SelectContent
           data-theme-slot={filterBarThemeSlot("selectContent")}
-          unstyled={theme.unstyledPrimitives}
           className={theme.classNames.selectContent}
         >
           {isSearchEnabled ? (
             <>
               <SelectSearchInput
                 data-theme-slot={filterBarThemeSlot("selectSearchInput")}
-                unstyled={theme.unstyledPrimitives}
                 value={query}
                 className={theme.classNames.selectSearchInput}
                 placeholder={theme.texts.searchOptionsPlaceholder}
@@ -88,7 +85,6 @@ export function SelectValueEditor<FieldId extends string>({
               />
               <SelectSeparator
                 data-theme-slot={filterBarThemeSlot("selectSeparator")}
-                unstyled={theme.unstyledPrimitives}
                 className={theme.classNames.selectSeparator}
               />
             </>
@@ -98,7 +94,6 @@ export function SelectValueEditor<FieldId extends string>({
               disabled
               value="__loading__"
               data-theme-slot={filterBarThemeSlot("selectItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.selectItem}
             >
               {theme.texts.loadingOptions}
@@ -108,7 +103,6 @@ export function SelectValueEditor<FieldId extends string>({
               disabled
               value="__error__"
               data-theme-slot={filterBarThemeSlot("selectItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.selectItem}
             >
               {error?.message ?? theme.texts.failedToLoadOptions}
@@ -119,7 +113,6 @@ export function SelectValueEditor<FieldId extends string>({
                 key={option.value}
                 value={option.value}
                 data-theme-slot={filterBarThemeSlot("selectItem")}
-                unstyled={theme.unstyledPrimitives}
                 className={theme.classNames.selectItem}
               >
                 <SelectOptionLabel option={option} />
@@ -130,7 +123,6 @@ export function SelectValueEditor<FieldId extends string>({
               disabled
               value="__empty__"
               data-theme-slot={filterBarThemeSlot("selectItem")}
-              unstyled={theme.unstyledPrimitives}
               className={theme.classNames.selectItem}
             >
               {theme.texts.noOptions}
@@ -143,7 +135,6 @@ export function SelectValueEditor<FieldId extends string>({
                 key={`${option.value}__hidden`}
                 value={option.value}
                 data-theme-slot={filterBarThemeSlot("selectItem")}
-                unstyled={theme.unstyledPrimitives}
                 className={cn(theme.classNames.selectItem, "hidden")}
               >
                 <SelectOptionLabel option={option} />

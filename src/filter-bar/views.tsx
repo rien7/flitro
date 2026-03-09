@@ -56,8 +56,14 @@ function countItemsWithinRows(container: HTMLElement, maxRows: number) {
 }
 
 function ViewMeasureButton({ label }: { label: string }) {
+  const theme = useFilterBarTheme();
+
   return (
-    <Button size="sm" variant="outline" tabIndex={-1} aria-hidden="true">
+    <Button
+      tabIndex={-1}
+      aria-hidden="true"
+      className={theme.classNames.viewsButton}
+    >
       {label}
     </Button>
   );
@@ -188,17 +194,9 @@ export function FilterBarViews({
           return (
             <Button
               key={viewEntry.id}
-              size="sm"
-              variant={isActive ? "secondary" : "outline"}
-              unstyled={theme.unstyledPrimitives}
-              data-theme-slot={filterBarThemeSlot(
-                "viewsButton",
-                isActive && "viewsButtonActive",
-              )}
-              className={cn(
-                theme.classNames.viewsButton,
-                isActive && theme.classNames.viewsButtonActive,
-              )}
+              data-active={isActive}
+              data-theme-slot={filterBarThemeSlot("viewsButton")}
+              className={theme.classNames.viewsButton}
               onClick={() => {
                 if (isActive) {
                   clearActiveView?.();
@@ -225,14 +223,12 @@ export function FilterBarViews({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             data-theme-slot={filterBarThemeSlot("viewsMenuContent")}
-            unstyled={theme.unstyledPrimitives}
             className={theme.classNames.viewsMenuContent}
           >
             {activeView ? (
               <>
                 <DropdownMenuItem
                   data-theme-slot={filterBarThemeSlot("viewsItem")}
-                  unstyled={theme.unstyledPrimitives}
                   className={theme.classNames.viewsItem}
                   onClick={() => {
                     clearActiveView?.();
@@ -242,7 +238,7 @@ export function FilterBarViews({
                   {theme.texts.exitView}
                 </DropdownMenuItem>
                 {overflowViews.length > 0 ? (
-                  <DropdownMenuSeparator unstyled={theme.unstyledPrimitives} />
+                  <DropdownMenuSeparator />
                 ) : null}
               </>
             ) : null}
@@ -254,7 +250,6 @@ export function FilterBarViews({
                     key={viewEntry.id}
                     value={viewEntry.id}
                     data-theme-slot={filterBarThemeSlot("viewsItem")}
-                    unstyled={theme.unstyledPrimitives}
                     className={theme.classNames.viewsItem}
                     onClick={() => {
                       applyView?.(viewEntry.id);
@@ -269,7 +264,6 @@ export function FilterBarViews({
               <DropdownMenuItem
                 disabled
                 data-theme-slot={filterBarThemeSlot("viewsEmptyItem")}
-                unstyled={theme.unstyledPrimitives}
                 className={theme.classNames.viewsEmptyItem}
               >
                 {theme.texts.noSavedViews}

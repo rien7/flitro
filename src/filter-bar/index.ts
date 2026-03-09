@@ -48,7 +48,9 @@ export { useFilterBarController } from "./controller";
 export {
   headlessFilterBarTheme,
   FilterBarThemeProvider,
+  getFilterBarPrimitiveDataSlot,
   mergeFilterBarTheme,
+  useFilterBarPrimitiveClassName,
   useFilterBarTheme,
 } from "./theme";
 export type {
@@ -70,6 +72,7 @@ export type {
   FilterBarValueType,
 } from "./context";
 export type {
+  FilterBarPrimitiveClassNameSlot,
   FilterBarTheme,
   FilterBarThemeClassNameSlot,
   FilterBarThemeIcons,
