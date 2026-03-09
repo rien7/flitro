@@ -25,8 +25,8 @@ The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, an
 
 ## Package Entrypoints
 
-- `filtro`: logical types, builder API, `FilterBar`, and the unstyled theme contract
-- `filtro/default-theme`: `defaultFilterBarTheme` and styled Base UI wrappers such as `Button`
+- `filtro`: logical types, builder API, `FilterBar`, and the theme slot contract
+- `filtro/default-theme`: `defaultFilterBarTheme` and preset-owned styled wrappers such as `Button`
 - `filtro/nuqs`: optional URL query synchronization helpers
 - `filtro/default-theme.css`: precompiled default theme stylesheet
 
@@ -42,7 +42,7 @@ Optional:
 
 ## Quick Start
 
-### Unstyled
+### Base FilterBar
 
 ```tsx
 import { FilterBar, filtro } from "filtro";
@@ -60,7 +60,7 @@ const fields = [
   ]),
 ];
 
-export function UnstyledExample() {
+export function BaseExample() {
   return (
     <FilterBar.Root fields={fields}>
       <div className="toolbar">
@@ -177,9 +177,10 @@ This layer contains:
 - `FilterBar.Root / Trigger / Content / ActiveItems / PinnedItems / SuggestedItems / Clear / SaveView / Views`
 - current flat condition state model
 - theme slot contract and helpers
+- primitive slot contract for the Base UI wrappers used by `FilterBar`
 - internal Base UI-backed primitives used by the implementation
 
-`FilterBar` is unstyled by default, but it is still a concrete React UI implementation. It is not a pure primitive-agnostic core, and it is not the future nested builder described in planning docs.
+`FilterBar` ships with internal Base UI wrappers and slot hooks by default. The optional default preset adds both slot-level and primitive-level styling on top, but it is still a concrete React UI implementation. It is not a pure primitive-agnostic core, and it is not the future nested builder described in planning docs.
 
 ### `filter-bar/internal/primitives/baseui`
 
@@ -193,7 +194,7 @@ This layer contains the internal wrappers that the current `FilterBar` implement
 - `DropdownMenu`
 - `ButtonGroup`
 
-These are implementation details of the current `FilterBar`. They are not the same thing as the default theme preset.
+These wrappers stay thin and mainly expose structure plus Base UI `data-slot`s. They are implementation details of the current `FilterBar`, not the same thing as the default theme preset.
 
 ### `default-theme`
 
@@ -202,10 +203,13 @@ Located in [`src/presets/default-theme`](https://github.com/rien7/filtro/tree/ma
 This layer contains:
 
 - `defaultFilterBarTheme`
+- preset primitive class mappings keyed by camelCase slot names for Base UI `data-slot`s
 - the precompiled `filtro/default-theme.css` stylesheet
 - convenience re-exports of the styled wrappers used by the default preset
 
-It is optional. If you only want the unstyled behavior, you do not need this preset.
+This is where preset-level sugar such as `Button` variants and sizes lives. The internal `filter-bar/internal/primitives/baseui` wrappers stay thin, while `filtro/default-theme` owns the default visual opinion.
+
+It is optional. If you only want the base FilterBar implementation without the preset layer, you do not need this preset.
 
 ### `nuqs`
 
@@ -418,7 +422,16 @@ import { defaultFilterBarTheme } from "filtro/default-theme";
 - It is only needed for the default visual preset
 - It can be imported directly by the consuming app without a Tailwind build step
 
-If you do not want that dependency, use the unstyled API and provide your own styles.
+If you do not want that dependency, use `filtro` alone and provide your own slot and primitive styles.
+
+`FilterBarTheme` now has two styling surfaces:
+
+- `classNames` for `FilterBar`'s own `data-theme-slot`s
+- `primitiveClassNames` for the internal Base UI wrappers' camelCase slot keys, which map to Base UI `data-slot`s
+
+For example, `primitiveClassNames.selectTrigger` targets the internal primitive that renders `data-slot="select-trigger"`.
+
+Theme overrides are merged slot by slot with `cn`/`twMerge`, so later theme entries and explicit `className` props win on conflicts.
 
 ## Boundary Rules
 

@@ -115,10 +115,10 @@ function DemoCard({
             Clear
           </FilterBar.Clear>
         </div>
-        <FilterBar.Content>
+        <FilterBar.Content className="mt-3 items-center">
           <FilterBar.PinnedItems />
-          <FilterBar.ActiveItems className="demo-items" />
           <FilterBar.SuggestedItems />
+          <FilterBar.ActiveItems />
         </FilterBar.Content>
       </FilterBar.Root>
     </section>
@@ -179,7 +179,7 @@ function NuqsDemoCard({
         </div>
         <FilterBar.Content>
           <FilterBar.PinnedItems />
-          <FilterBar.ActiveItems className="demo-items" />
+          <FilterBar.ActiveItems />
           <FilterBar.SuggestedItems />
         </FilterBar.Content>
       </FilterBar.Root>
@@ -353,9 +353,9 @@ export function PlaygroundApp() {
     <main className="playground">
       <h1>Filtro UI Playground</h1>
       <p className="sub">
-        Compare the headless FilterBar with the default themed preset and use
-        this page to debug the UI with HMR. This demo includes a pinned status
-        row plus keyword and archived suggestions.
+        Compare the base FilterBar with the default themed preset and use this
+        page to debug the UI with HMR. This demo includes a pinned status row
+        plus keyword and archived suggestions.
       </p>
 
       <div className="view-switcher" role="group" aria-label="Choose playground view">
@@ -364,7 +364,7 @@ export function PlaygroundApp() {
           className={view === "headless" ? "switch-button active" : "switch-button"}
           onClick={() => setView("headless")}
         >
-          Headless Only
+          Base Only
         </button>
         <button
           type="button"
@@ -386,8 +386,8 @@ export function PlaygroundApp() {
         <div className={view === "both" ? "demo-grid" : "demo-stack"}>
           {showHeadless ? (
             <DemoCard
-              title="Headless"
-              description="No FilterBar theme preset. Internal controls render with no visual classes."
+              title="Base FilterBar"
+              description="No FilterBar theme preset. You get the FilterBar structure and internal Base UI wrappers without the default preset layer."
               fields={fields}
               storageKey="playground:headless"
               styled={false}
@@ -396,7 +396,7 @@ export function PlaygroundApp() {
           {showDefault ? (
             <DemoCard
               title="Default Theme"
-              description="Uses defaultFilterBarTheme and the exported styled Button primitive."
+              description="Uses defaultFilterBarTheme to layer the preset slot styles on top of the base FilterBar primitives."
               fields={fields}
               storageKey="playground:default-theme"
               theme={defaultFilterBarTheme}
@@ -418,8 +418,8 @@ export function PlaygroundApp() {
         <div className={view === "both" ? "demo-grid" : "demo-stack"}>
           {showHeadless ? (
             <DemoCard
-              title="Headless Validation"
-              description="Uses builder-level validate() rules without the default theme."
+              title="Base Validation"
+              description="Uses builder-level validate() rules with only the base FilterBar primitives."
               fields={validationFields}
               storageKey="playground:validation-headless"
               styled={false}
