@@ -16,6 +16,7 @@ Current constraints:
 - No visual AST editor
 
 The logical layer exports AST types such as `FilterCondition`, `FilterGroup`, and `FilterRoot`, but the current `FilterBar` does not edit nested groups.
+Use `valuesToFilterRoot()` and `filterRootToValues()` when you need to bridge the flat UI state with the flat `AND` subset of the AST.
 
 ## Package Entrypoints
 
@@ -134,6 +135,7 @@ export function StyledExample() {
 - Builder API with strong TypeScript inference
 - Grouped field definitions for trigger menus
 - Flat active state as `FilterBarValue[]`
+- Flat value <-> AST conversion helpers
 - Controlled and uncontrolled `FilterBar.Root`
 - Optional `useFilterBarController()` for draft/applied coordination
 - Pinned fields and suggested fields
@@ -306,6 +308,69 @@ const filters = useFilterBarController({
   Apply
 </button>
 ```
+
+## Flat Value / AST Conversion
+
+The current `FilterBar` state is still `FilterBarValue[]`, but the package also exports logical AST types.
+Use these helpers when you want to compile a flat `FilterBar` value into a `FilterRoot`, or hydrate a flat `FilterBar` from an AST value you already store elsewhere:
+
+```tsx
+import {
+  FilterBar,
+  filtro,
+  filterRootToValues,
+  valuesToFilterRoot,
+  type FilterBarValueType,
+  type FilterRoot,
+} from "filtro";
+
+type FieldId = "keyword" | "status";
+
+const fields = [
+  filtro.string("keyword").label("Keyword"),
+  filtro.select("status").label("Status").options([
+    { label: "Open", value: "open" },
+    { label: "Closed", value: "closed" },
+  ]),
+];
+
+export function Example() {
+  const [value, setValue] = useState<FilterBarValueType<FieldId>>([]);
+
+  const filter = valuesToFilterRoot(value);
+
+  function restore(saved: FilterRoot<FieldId>) {
+    const restored = filterRootToValues(fields, saved);
+
+    if (!restored) {
+      return;
+    }
+
+    setValue(restored);
+  }
+
+  return (
+    <FilterBar.Root fields={fields} value={value} onChange={setValue}>
+      <FilterBar.Trigger render={<button type="button" />}>
+        Add Filter
+      </FilterBar.Trigger>
+      <FilterBar.ActiveItems />
+    </FilterBar.Root>
+  );
+}
+```
+
+`valuesToFilterRoot()` always returns a flat root group with relation `and`.
+
+`filterRootToValues()` returns `null` when the AST cannot be represented by the current flat `FilterBar` model.
+That includes cases such as:
+
+- Nested groups
+- Duplicate conditions for the same field
+- Conditions that reference unknown fields
+- Conditions whose kind, operator, or value do not match the current field definition
+
+Empty operators such as `isEmpty` and `isNotEmpty` are encoded in the AST with `value: null`.
 
 ## Styling
 

@@ -10,8 +10,8 @@ export type EnumEmptyOperatorKind =
   (typeof EmptyOperatorKind)[keyof typeof EmptyOperatorKind];
 
 export interface EmptyOperatorValue {
-  [EmptyOperatorKind.isEmpty]: never;
-  [EmptyOperatorKind.isNotEmpty]: never;
+  [EmptyOperatorKind.isEmpty]: null;
+  [EmptyOperatorKind.isNotEmpty]: null;
 }
 
 export const StringOperatorKind = {

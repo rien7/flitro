@@ -96,6 +96,10 @@ export {
   sanitizeFilterBarValues,
   serializeFilterBarValue,
 } from "./value";
+export {
+  filterRootToValues,
+  valuesToFilterRoot,
+} from "./ast";
 export type {
   FilterBarQueryKeys,
   FilterBarQueryState,
