@@ -1,5 +1,9 @@
 import { FieldKind } from "@/logical/field";
 import {
+  getFilterValueAriaLabel,
+  stopCompositeInputKeyDownPropagation,
+} from "@/filter-bar/accessibility";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -77,6 +81,7 @@ export function MultiSelectValueEditor<FieldId extends string>({
       >
         <SelectTrigger
           data-theme-slot={filterBarThemeSlot("selectTrigger", "editorControl")}
+          aria-label={getFilterValueAriaLabel(field)}
           className={cn(
             theme.classNames.selectTrigger,
             theme.classNames.editorControl,
@@ -106,10 +111,11 @@ export function MultiSelectValueEditor<FieldId extends string>({
               <SelectSearchInput
                 data-theme-slot={filterBarThemeSlot("selectSearchInput")}
                 value={query}
+                aria-label={theme.texts.searchOptionsPlaceholder}
                 className={theme.classNames.selectSearchInput}
                 placeholder={theme.texts.searchOptionsPlaceholder}
                 onChange={(event) => setQuery(event.currentTarget.value)}
-                onKeyDown={(event) => event.stopPropagation()}
+                onKeyDown={stopCompositeInputKeyDownPropagation}
               />
               <SelectSeparator
                 data-theme-slot={filterBarThemeSlot("selectSeparator")}

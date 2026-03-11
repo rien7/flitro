@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { MenuTrigger } from "@base-ui/react";
 
+import { stopCompositeInputKeyDownPropagation } from "@/filter-bar/accessibility";
 import { Button } from "@/filter-bar/internal/primitives/baseui/button";
 import {
   DropdownMenu,
@@ -61,9 +62,10 @@ export function FilterBarSaveView({
             data-theme-slot={filterBarThemeSlot("saveViewInput")}
             className={theme.classNames.saveViewInput}
             value={name}
+            aria-label={theme.texts.saveViewNamePlaceholder}
             placeholder={theme.texts.saveViewNamePlaceholder}
             onChange={(event) => setName(event.currentTarget.value)}
-            onKeyDown={(event) => event.stopPropagation()}
+            onKeyDown={stopCompositeInputKeyDownPropagation}
           />
           <Button
             type="submit"

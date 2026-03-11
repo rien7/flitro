@@ -123,6 +123,8 @@ export function FilterBarActiveItems({
 
     return (
       <div
+        role="status"
+        aria-live="polite"
         data-theme-slot={filterBarThemeSlot("emptyState")}
         className={cn(
           theme.classNames.emptyState,
@@ -136,6 +138,8 @@ export function FilterBarActiveItems({
 
   return (
     <div
+      role="list"
+      aria-label="Active filters"
       data-theme-slot={filterBarThemeSlot("activeItemsRoot")}
       className={cn(theme.classNames.activeItemsRoot, className)}
     >

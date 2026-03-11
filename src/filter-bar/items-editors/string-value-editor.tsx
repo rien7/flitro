@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { FieldKind } from "@/logical/field";
+import { getFilterValueAriaLabel } from "@/filter-bar/accessibility";
 import { Input } from "@/filter-bar/internal/primitives/baseui/input";
 import { validateFieldValue } from "@/filter-bar/validation";
 import { filterBarThemeSlot, useFilterBarTheme } from "@/filter-bar/theme";
@@ -81,6 +82,7 @@ export function StringValueEditor<FieldId extends string>({
         <Input
           data-theme-slot={filterBarThemeSlot("editorControl")}
           className={theme.classNames.editorControl}
+          aria-label={getFilterValueAriaLabel(field)}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorDescriptionId : undefined}
           value={draft}

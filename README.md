@@ -149,6 +149,16 @@ export function StyledExample() {
 - Saved views backed by `localStorage`
 - Optional URL sync with `nuqs`
 
+## Keyboard and Accessibility
+
+The current `FilterBar` supports the basic keyboard and screen-reader paths needed for day-to-day use:
+
+- Search inputs inside trigger menus and option pickers keep text entry behavior while still allowing `ArrowUp`, `ArrowDown`, `Enter`, `Escape`, `Tab`, `PageUp`, and `PageDown` to reach the surrounding menu/select primitive.
+- Suggested filters are keyboard reachable and can be activated with `Enter` or `Space`.
+- Active, pinned, and suggested regions expose list semantics, and each rendered row exposes an accessible filter name.
+- Built-in value editors expose explicit labels for text, number, date, select, and multi-select controls instead of relying on placeholders alone.
+- Validation errors are announced as alerts, and the empty state is exposed as a status message.
+
 ## Builder API
 
 Use the `filtro` singleton to declare fields:

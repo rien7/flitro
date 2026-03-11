@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { FieldKind } from "@/logical/field";
+import { getFilterValueAriaLabel } from "@/filter-bar/accessibility";
 import { DateOperatorKind } from "@/logical/operator";
 import { Input } from "@/filter-bar/internal/primitives/baseui/input";
 import { validateFieldValue } from "@/filter-bar/validation";
@@ -216,6 +217,7 @@ export function DateValueEditor<FieldId extends string>({
           <Input
             data-theme-slot={filterBarThemeSlot("editorControl")}
             className={theme.classNames.editorControl}
+            aria-label={getFilterValueAriaLabel(field, "days")}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? errorDescriptionId : undefined}
             type="number"
@@ -248,6 +250,7 @@ export function DateValueEditor<FieldId extends string>({
             <Input
               data-theme-slot={filterBarThemeSlot("editorControl")}
               className={theme.classNames.editorControl}
+              aria-label={getFilterValueAriaLabel(field, "start date")}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? errorDescriptionId : undefined}
               type="date"
@@ -257,6 +260,7 @@ export function DateValueEditor<FieldId extends string>({
             <Input
               data-theme-slot={filterBarThemeSlot("editorControl")}
               className={theme.classNames.editorControl}
+              aria-label={getFilterValueAriaLabel(field, "end date")}
               aria-invalid={Boolean(error)}
               aria-describedby={error ? errorDescriptionId : undefined}
               type="date"
@@ -281,6 +285,7 @@ export function DateValueEditor<FieldId extends string>({
         <Input
           data-theme-slot={filterBarThemeSlot("editorControl")}
           className={theme.classNames.editorControl}
+          aria-label={getFilterValueAriaLabel(field)}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorDescriptionId : undefined}
           type="date"

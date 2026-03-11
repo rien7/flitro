@@ -33,6 +33,8 @@ export function FilterBarPinnedItems({
 
   return (
     <div
+      role="list"
+      aria-label="Pinned filters"
       data-theme-slot={filterBarThemeSlot("pinnedItemsRoot")}
       className={cn(theme.classNames.pinnedItemsRoot, className)}
     >

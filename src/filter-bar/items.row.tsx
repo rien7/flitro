@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 
+import { getFilterRowAriaLabel } from "@/filter-bar/accessibility";
 import { type EnumFieldKind } from "@/logical/field";
 import { type OperatorKindFor } from "@/logical/operator";
 import { Button } from "@/filter-bar/internal/primitives/baseui/button";
@@ -74,6 +75,7 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
 
   return (
     <div
+      role="listitem"
       data-removable={removable}
       data-has-locked-operator={hasLockedOperator}
       data-hides-value-editor={hidesValueEditor}
@@ -87,6 +89,8 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
         data-hides-value-editor={hidesValueEditor}
         data-theme-slot={filterBarThemeSlot("row")}
         data-area={area}
+        aria-label={getFilterRowAriaLabel(field)}
+        aria-describedby={validationMessage ? errorId : undefined}
         className={theme.classNames.row}
       >
         <FilterItemFieldSegment
@@ -217,6 +221,7 @@ export function FilterItemRow<FieldId extends string, Kind extends EnumFieldKind
       {validationMessage ? (
         <div
           id={errorId}
+          role="alert"
           data-theme-slot={filterBarThemeSlot("rowError")}
           className={theme.classNames.rowError}
         >

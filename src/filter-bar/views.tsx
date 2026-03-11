@@ -185,6 +185,8 @@ export function FilterBarViews({
       className={cn(theme.classNames.viewsRoot, className)}
     >
       <div
+        role="group"
+        aria-label="Saved views"
         data-theme-slot={filterBarThemeSlot("viewsList")}
         className={theme.classNames.viewsList}
       >
@@ -195,6 +197,7 @@ export function FilterBarViews({
             <Button
               key={viewEntry.id}
               data-active={isActive}
+              aria-pressed={isActive}
               data-theme-slot={filterBarThemeSlot("viewsButton")}
               className={theme.classNames.viewsButton}
               onClick={() => {

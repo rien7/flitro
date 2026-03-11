@@ -2,6 +2,7 @@ import { Fragment, useDeferredValue, useMemo, useState, type ReactNode } from "r
 
 import type { MenuTrigger } from "@base-ui/react";
 
+import { stopCompositeInputKeyDownPropagation } from "@/filter-bar/accessibility";
 import { FieldKind, type EnumFieldKind } from "@/logical/field";
 import {
   DropdownMenu,
@@ -187,10 +188,11 @@ function TriggerSelectionField<FieldId extends string, Kind extends SelectKind>(
               <SelectSearchInput
                 data-theme-slot={filterBarThemeSlot("selectSearchInput")}
                 value={query}
+                aria-label={theme.texts.searchOptionsPlaceholder}
                 className={theme.classNames.selectSearchInput}
                 placeholder={theme.texts.searchOptionsPlaceholder}
                 onChange={(event) => setQuery(event.currentTarget.value)}
-                onKeyDown={(event) => event.stopPropagation()}
+                onKeyDown={stopCompositeInputKeyDownPropagation}
               />
               <SelectSeparator
                 data-theme-slot={filterBarThemeSlot("selectSeparator")}
@@ -418,10 +420,11 @@ export function FilterBarTrigger({
         <SelectSearchInput
           data-theme-slot={filterBarThemeSlot("selectSearchInput")}
           value={query}
+          aria-label={theme.texts.searchFieldsPlaceholder}
           className={theme.classNames.selectSearchInput}
           placeholder={theme.texts.searchFieldsPlaceholder}
           onChange={(event) => setQuery(event.currentTarget.value)}
-          onKeyDown={(event) => event.stopPropagation()}
+          onKeyDown={stopCompositeInputKeyDownPropagation}
         />
         <SelectSeparator
           data-theme-slot={filterBarThemeSlot("triggerMenuSeparator")}
