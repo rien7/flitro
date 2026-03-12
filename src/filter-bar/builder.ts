@@ -23,35 +23,35 @@ import type {
 
 type BaseFieldBuilderMethod
   = | 'label'
-    | 'icon'
-    | 'description'
-    | 'placeholder'
-    | 'pin'
-    | 'suggest'
-    | 'operator'
-    | 'fixedOperator'
-    | 'render'
-    | 'validate'
-    | 'zod'
+  | 'icon'
+  | 'description'
+  | 'placeholder'
+  | 'pin'
+  | 'suggest'
+  | 'operator'
+  | 'fixedOperator'
+  | 'render'
+  | 'validate'
+  | 'zod'
 type SelectFieldBuilderMethod
   = | BaseFieldBuilderMethod
-    | 'options'
-    | 'useOptions'
-    | 'loadOptions'
-    | 'searchable'
+  | 'options'
+  | 'useOptions'
+  | 'loadOptions'
+  | 'searchable'
 type MultiSelectFieldBuilderMethod
   = | SelectFieldBuilderMethod
-    | 'renderValueLabel'
-    | 'maxSelections'
+  | 'renderValueLabel'
+  | 'maxSelections'
 type BooleanFieldBuilderMethod = BaseFieldBuilderMethod | 'options'
 
 type FieldBuilderMethod<Kind extends EnumFieldKind> = Kind extends SelectKind
   ? Kind extends typeof FieldKind.multiSelect
-    ? MultiSelectFieldBuilderMethod
-    : SelectFieldBuilderMethod
+  ? MultiSelectFieldBuilderMethod
+  : SelectFieldBuilderMethod
   : Kind extends BooleanKind
-    ? BooleanFieldBuilderMethod
-    : BaseFieldBuilderMethod
+  ? BooleanFieldBuilderMethod
+  : BaseFieldBuilderMethod
 
 type OmitUsedMethods<Builder, Used extends PropertyKey> = Omit<
   Builder,
@@ -65,8 +65,8 @@ type FieldOperatorResolver<Kind extends EnumFieldKind> = (
 ) => OperatorKindFor<Kind>[]
 type FieldOperatorInput<Kind extends EnumFieldKind>
   = | OperatorKindFor<Kind>
-    | readonly OperatorKindFor<Kind>[]
-    | FieldOperatorResolver<Kind>
+  | readonly OperatorKindFor<Kind>[]
+  | FieldOperatorResolver<Kind>
 declare const fieldBuilderBrand: unique symbol
 
 export interface AnyFieldBuilder<
@@ -101,18 +101,18 @@ export type BaseFieldBuilder<
       operator: (<Op extends OperatorKindFor<Kind>>(
         op: Op,
         config?: FieldOperatorConfig<Op>,
-      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
+      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
         ops: Ops,
         config?: FieldOperatorConfig<Ops[number]>,
-      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         resolve: FieldOperatorResolver<Kind>,
         config?: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         config: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator'>)
+      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>)
       fixedOperator: <Op extends OperatorKindFor<Kind>>(
         op: Op,
-      ) => BaseFieldBuilder<FieldId, Kind, Used | 'fixedOperator'>
+      ) => BaseFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>
       render: (fn: UIFieldRender) => BaseFieldBuilder<FieldId, Kind, Used | 'render'>
       validate: (
         fn: UIFieldValidator,
@@ -128,8 +128,8 @@ export type SelectFieldBuilder<
   FieldId extends string,
   Kind extends SelectKind,
   Used extends Kind extends typeof FieldKind.multiSelect
-    ? MultiSelectFieldBuilderMethod
-    : SelectFieldBuilderMethod = never,
+  ? MultiSelectFieldBuilderMethod
+  : SelectFieldBuilderMethod = never,
 > = AnyFieldBuilder<FieldId, Kind>
   & OmitUsedMethods<
     {
@@ -148,18 +148,18 @@ export type SelectFieldBuilder<
       operator: (<Op extends OperatorKindFor<Kind>>(
         op: Op,
         config?: FieldOperatorConfig<Op>,
-      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
+      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
         ops: Ops,
         config?: FieldOperatorConfig<Ops[number]>,
-      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         resolve: FieldOperatorResolver<Kind>,
         config?: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         config: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator'>)
+      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>)
       fixedOperator: <Op extends OperatorKindFor<Kind>>(
         op: Op,
-      ) => SelectFieldBuilder<FieldId, Kind, Used | 'fixedOperator'>
+      ) => SelectFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>
       render: (fn: UIFieldRender) => SelectFieldBuilder<FieldId, Kind, Used | 'render'>
       options: (options: SelectOptions) => SelectFieldBuilder<FieldId, Kind, Used | 'options'>
       useOptions: (
@@ -179,9 +179,9 @@ export type SelectFieldBuilder<
       ) => SelectFieldBuilder<FieldId, Kind, Used | 'zod'>
     } & (Kind extends typeof FieldKind.multiSelect
       ? {
-          renderValueLabel: (fn: MultiSelectValueLabelRenderer) => SelectFieldBuilder<FieldId, Kind, Used | 'renderValueLabel'>
-          maxSelections: (max: number) => SelectFieldBuilder<FieldId, Kind, Used | 'maxSelections'>
-        }
+        renderValueLabel: (fn: MultiSelectValueLabelRenderer) => SelectFieldBuilder<FieldId, Kind, Used | 'renderValueLabel'>
+        maxSelections: (max: number) => SelectFieldBuilder<FieldId, Kind, Used | 'maxSelections'>
+      }
       : Record<never, never>),
     Used
   >
@@ -208,18 +208,18 @@ export type BooleanFieldBuilder<
       operator: (<Op extends OperatorKindFor<Kind>>(
         op: Op,
         config?: FieldOperatorConfig<Op>,
-      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
+      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & (<const Ops extends readonly OperatorKindFor<Kind>[]>(
         ops: Ops,
         config?: FieldOperatorConfig<Ops[number]>,
-      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         resolve: FieldOperatorResolver<Kind>,
         config?: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator'>) & ((
+      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>) & ((
         config: FieldOperatorConfig<OperatorKindFor<Kind>>,
-      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator'>)
+      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>)
       fixedOperator: <Op extends OperatorKindFor<Kind>>(
         op: Op,
-      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'fixedOperator'>
+      ) => BooleanFieldBuilder<FieldId, Kind, Used | 'operator' | 'fixedOperator'>
       render: (fn: UIFieldRender) => BooleanFieldBuilder<FieldId, Kind, Used | 'render'>
       options: (options: BooleanOptions) => BooleanFieldBuilder<FieldId, Kind, Used | 'options'>
       validate: (
@@ -239,8 +239,8 @@ export type FieldBuilder<
 > = Kind extends SelectKind
   ? SelectFieldBuilder<FieldId, Kind, Extract<Used, SelectFieldBuilderMethod>>
   : Kind extends BooleanKind
-    ? BooleanFieldBuilder<FieldId, Kind, Extract<Used, BooleanFieldBuilderMethod>>
-    : BaseFieldBuilder<FieldId, Kind, Extract<Used, BaseFieldBuilderMethod>>
+  ? BooleanFieldBuilder<FieldId, Kind, Extract<Used, BooleanFieldBuilderMethod>>
+  : BaseFieldBuilder<FieldId, Kind, Extract<Used, BaseFieldBuilderMethod>>
 
 export interface FieldGroupDefinition<
   FieldId extends string = string,
@@ -384,8 +384,8 @@ class BuilderBase<
     const currentOps = [...field.allowedOperators]
     const usingConfigOnly
       = typeof input === 'object'
-        && input !== null
-        && !Array.isArray(input)
+      && input !== null
+      && !Array.isArray(input)
     const resolvedOps = usingConfigOnly
       ? operatorsForKind(field.kind)
       : typeof input === 'function'
